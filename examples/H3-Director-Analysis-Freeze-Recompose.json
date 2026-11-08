@@ -1,0 +1,1647 @@
+{
+  "id": "82ba5078-0e8d-41c7-afc6-08273f16349a",
+  "revision": 0,
+  "last_node_id": 11,
+  "last_link_id": 21,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "H3DirectorRequestBuilder",
+      "pos": [
+        -1000,
+        7020
+      ],
+      "size": [
+        480,
+        830
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pin_specs",
+          "name": "pin_specs",
+          "shape": 7,
+          "type": "OBVPM_H3_PINSPECS",
+          "link": null
+        },
+        {
+          "localized_name": "picture_1",
+          "name": "picture_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "picture_2",
+          "name": "picture_2",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "picture_3",
+          "name": "picture_3",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "picture_4",
+          "name": "picture_4",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "direction",
+          "name": "direction",
+          "type": "STRING",
+          "widget": {
+            "name": "direction"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "duration_seconds",
+          "name": "duration_seconds",
+          "type": "FLOAT",
+          "widget": {
+            "name": "duration_seconds"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "reference_roles",
+          "name": "reference_roles",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "reference_roles"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "system",
+          "name": "system",
+          "type": "STRING",
+          "links": [
+            17
+          ]
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": [
+            18
+          ]
+        },
+        {
+          "localized_name": "llm_images",
+          "name": "llm_images",
+          "shape": 6,
+          "type": "IMAGE",
+          "links": [
+            3
+          ]
+        },
+        {
+          "localized_name": "director_context",
+          "name": "director_context",
+          "type": "STRING",
+          "links": [
+            7
+          ]
+        },
+        {
+          "localized_name": "current_direction",
+          "name": "current_direction",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "continuity_info",
+          "name": "continuity_info",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "duration_seconds",
+          "name": "duration_seconds",
+          "type": "FLOAT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3DirectorRequestBuilder"
+      },
+      "widgets_values": [
+        "",
+        5.2,
+        "",
+        ""
+      ],
+      "widgets_values_named": {
+        "direction": "",
+        "duration_seconds": 5.2,
+        "reference_roles": "",
+        "director_reference_status": ""
+      }
+    },
+    {
+      "id": 2,
+      "type": "OllamaImageList_LlamaCppProfiledGenerate",
+      "pos": [
+        -470,
+        7310
+      ],
+      "size": [
+        250,
+        540
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "model_profile",
+          "name": "model_profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+          "link": 1
+        },
+        {
+          "localized_name": "hardware_profile",
+          "name": "hardware_profile",
+          "shape": 7,
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
+          "link": 2
+        },
+        {
+          "localized_name": "reasoning",
+          "name": "reasoning",
+          "shape": 7,
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_REASONING_CONFIG",
+          "link": null
+        },
+        {
+          "localized_name": "speculative",
+          "name": "speculative",
+          "shape": 7,
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SPECULATIVE_CONFIG",
+          "link": null
+        },
+        {
+          "localized_name": "images",
+          "name": "images",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 3
+        },
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "localized_name": "video",
+          "name": "video",
+          "shape": 7,
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "localized_name": "model_path",
+          "name": "model_path",
+          "type": "COMBO",
+          "widget": {
+            "name": "model_path"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mmproj_path",
+          "name": "mmproj_path",
+          "type": "COMBO",
+          "widget": {
+            "name": "mmproj_path"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "system",
+          "name": "system",
+          "type": "STRING",
+          "widget": {
+            "name": "system"
+          },
+          "link": 4
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": 5
+        },
+        {
+          "localized_name": "n_ctx",
+          "name": "n_ctx",
+          "type": "INT",
+          "widget": {
+            "name": "n_ctx"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "max_tokens",
+          "name": "max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "image_max_tokens",
+          "name": "image_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "image_max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "stop",
+          "name": "stop",
+          "type": "STRING",
+          "widget": {
+            "name": "stop"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "verbose",
+          "name": "verbose",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "verbose"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "image_min_tokens",
+          "name": "image_min_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "image_min_tokens"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "response",
+          "name": "response",
+          "type": "STRING",
+          "links": [
+            6
+          ]
+        },
+        {
+          "localized_name": "thinking",
+          "name": "thinking",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "raw JSON",
+          "name": "raw JSON",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "metrics",
+          "name": "metrics",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "media diagnostics",
+          "name": "media diagnostics",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MEDIA_DIAGNOSTICS",
+          "links": []
+        }
+      ],
+      "title": "Llama.cpp Generate #1",
+      "properties": {
+        "cnr_id": "ollama-image-list",
+        "ver": "53dad7370f71541843c0367459078118b23c1b14",
+        "Node name for S&R": "OllamaImageList_LlamaCppProfiledGenerate"
+      },
+      "widgets_values": [
+        "",
+        "[none]",
+        "",
+        "",
+        16384,
+        4096,
+        0,
+        45,
+        "fixed",
+        "",
+        false,
+        0
+      ],
+      "widgets_values_named": {
+        "model_path": "",
+        "mmproj_path": "[none]",
+        "system": "",
+        "prompt": "",
+        "n_ctx": 16384,
+        "max_tokens": 4096,
+        "image_max_tokens": 0,
+        "seed": 45,
+        "control_after_generate": "fixed",
+        "stop": "",
+        "verbose": false,
+        "image_min_tokens": 0
+      }
+    },
+    {
+      "id": 3,
+      "type": "H3DirectorAnalysisSnapshot",
+      "pos": [
+        -190,
+        7240
+      ],
+      "size": [
+        370,
+        610
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "raw_analysis",
+          "name": "raw_analysis",
+          "type": "STRING",
+          "link": 6
+        },
+        {
+          "localized_name": "director_context",
+          "name": "director_context",
+          "type": "STRING",
+          "link": 7
+        },
+        {
+          "localized_name": "materialized",
+          "name": "materialized",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "materialized"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "snapshot_raw_analysis",
+          "name": "snapshot_raw_analysis",
+          "type": "STRING",
+          "widget": {
+            "name": "snapshot_raw_analysis"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "snapshot_director_context",
+          "name": "snapshot_director_context",
+          "type": "STRING",
+          "widget": {
+            "name": "snapshot_director_context"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "raw_analysis",
+          "name": "raw_analysis",
+          "type": "STRING",
+          "links": [
+            15
+          ]
+        },
+        {
+          "localized_name": "director_context",
+          "name": "director_context",
+          "type": "STRING",
+          "links": [
+            16
+          ]
+        },
+        {
+          "localized_name": "snapshot_status",
+          "name": "snapshot_status",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3DirectorAnalysisSnapshot"
+      },
+      "widgets_values": [
+        false,
+        "",
+        "",
+        null,
+        null
+      ],
+      "widgets_values_named": {
+        "materialized": false,
+        "snapshot_raw_analysis": "",
+        "snapshot_director_context": "",
+        "Reset Director Context (clear saved state)": null,
+        "Re-analyze (refresh Pass #1)": null
+      }
+    },
+    {
+      "id": 4,
+      "type": "OllamaImageList_LlamaCppModelProfile",
+      "pos": [
+        -460,
+        7250
+      ],
+      "size": [
+        230,
+        230
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 1,
+      "mode": 0,
+      "showAdvanced": true,
+      "inputs": [
+        {
+          "localized_name": "profile",
+          "name": "profile",
+          "type": "COMBO",
+          "widget": {
+            "name": "profile"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "custom_handler",
+          "name": "custom_handler",
+          "type": "COMBO",
+          "widget": {
+            "name": "custom_handler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "temperature",
+          "name": "temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "temperature"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "top_p",
+          "name": "top_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "top_p"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "top_k",
+          "name": "top_k",
+          "type": "INT",
+          "widget": {
+            "name": "top_k"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "min_p",
+          "name": "min_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "min_p"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "repeat_penalty",
+          "name": "repeat_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "repeat_penalty"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "presence_penalty",
+          "name": "presence_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "presence_penalty"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model profile",
+          "name": "model profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "title": "#1 Llama.cpp Model Profile",
+      "properties": {
+        "cnr_id": "ollama-image-list",
+        "ver": "53dad7370f71541843c0367459078118b23c1b14",
+        "Node name for S&R": "OllamaImageList_LlamaCppModelProfile"
+      },
+      "widgets_values": [
+        "Qwen 3.5 Non-thinking",
+        "auto",
+        0.45,
+        0.9,
+        20,
+        0,
+        1,
+        0
+      ],
+      "widgets_values_named": {
+        "profile": "Qwen 3.5 Non-thinking",
+        "custom_handler": "auto",
+        "temperature": 0.45,
+        "top_p": 0.9,
+        "top_k": 20,
+        "min_p": 0,
+        "repeat_penalty": 1,
+        "presence_penalty": 0
+      }
+    },
+    {
+      "id": 5,
+      "type": "OllamaImageList_LlamaCppHardwareRuntimeProfile",
+      "pos": [
+        -140,
+        7270
+      ],
+      "size": [
+        290,
+        230
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "profile",
+          "name": "profile",
+          "type": "COMBO",
+          "widget": {
+            "name": "profile"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "n_batch",
+          "name": "n_batch",
+          "type": "INT",
+          "widget": {
+            "name": "n_batch"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "n_ubatch",
+          "name": "n_ubatch",
+          "type": "INT",
+          "widget": {
+            "name": "n_ubatch"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "gpu_layers",
+          "name": "gpu_layers",
+          "type": "COMBO",
+          "widget": {
+            "name": "gpu_layers"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "main_gpu",
+          "name": "main_gpu",
+          "type": "INT",
+          "widget": {
+            "name": "main_gpu"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "n_threads",
+          "name": "n_threads",
+          "type": "INT",
+          "widget": {
+            "name": "n_threads"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "flash_attention",
+          "name": "flash_attention",
+          "type": "COMBO",
+          "widget": {
+            "name": "flash_attention"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "use_mmap",
+          "name": "use_mmap",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "use_mmap"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "hardware profile",
+          "name": "hardware profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
+          "links": [
+            2,
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "ollama-image-list",
+        "ver": "53dad7370f71541843c0367459078118b23c1b14",
+        "Node name for S&R": "OllamaImageList_LlamaCppHardwareRuntimeProfile"
+      },
+      "widgets_values": [
+        "GPU Full Offload",
+        512,
+        0,
+        "all",
+        0,
+        0,
+        "auto",
+        true
+      ],
+      "widgets_values_named": {
+        "profile": "GPU Full Offload",
+        "n_batch": 512,
+        "n_ubatch": 0,
+        "gpu_layers": "all",
+        "main_gpu": 0,
+        "n_threads": 0,
+        "flash_attention": "auto",
+        "use_mmap": true
+      }
+    },
+    {
+      "id": 6,
+      "type": "OllamaImageList_LlamaCppProfiledGenerate",
+      "pos": [
+        200,
+        7310
+      ],
+      "size": [
+        250,
+        540
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 8,
+      "mode": 0,
+      "showAdvanced": false,
+      "inputs": [
+        {
+          "localized_name": "model_profile",
+          "name": "model_profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+          "link": 8
+        },
+        {
+          "localized_name": "hardware_profile",
+          "name": "hardware_profile",
+          "shape": 7,
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
+          "link": 9
+        },
+        {
+          "localized_name": "reasoning",
+          "name": "reasoning",
+          "shape": 7,
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_REASONING_CONFIG",
+          "link": null
+        },
+        {
+          "localized_name": "speculative",
+          "name": "speculative",
+          "shape": 7,
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SPECULATIVE_CONFIG",
+          "link": null
+        },
+        {
+          "localized_name": "images",
+          "name": "images",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "localized_name": "video",
+          "name": "video",
+          "shape": 7,
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "localized_name": "model_path",
+          "name": "model_path",
+          "type": "COMBO",
+          "widget": {
+            "name": "model_path"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mmproj_path",
+          "name": "mmproj_path",
+          "type": "COMBO",
+          "widget": {
+            "name": "mmproj_path"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "system",
+          "name": "system",
+          "type": "STRING",
+          "widget": {
+            "name": "system"
+          },
+          "link": 10
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": 11
+        },
+        {
+          "localized_name": "n_ctx",
+          "name": "n_ctx",
+          "type": "INT",
+          "widget": {
+            "name": "n_ctx"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "max_tokens",
+          "name": "max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "image_max_tokens",
+          "name": "image_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "image_max_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "stop",
+          "name": "stop",
+          "type": "STRING",
+          "widget": {
+            "name": "stop"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "verbose",
+          "name": "verbose",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "verbose"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "image_min_tokens",
+          "name": "image_min_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "image_min_tokens"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "response",
+          "name": "response",
+          "type": "STRING",
+          "links": [
+            12
+          ]
+        },
+        {
+          "localized_name": "thinking",
+          "name": "thinking",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "raw JSON",
+          "name": "raw JSON",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "metrics",
+          "name": "metrics",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "media diagnostics",
+          "name": "media diagnostics",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MEDIA_DIAGNOSTICS",
+          "links": []
+        }
+      ],
+      "title": "Llama.cpp Generate #2",
+      "properties": {
+        "cnr_id": "ollama-image-list",
+        "ver": "53dad7370f71541843c0367459078118b23c1b14",
+        "Node name for S&R": "OllamaImageList_LlamaCppProfiledGenerate"
+      },
+      "widgets_values": [
+        "",
+        "[none]",
+        "",
+        "",
+        16384,
+        2048,
+        0,
+        45,
+        "fixed",
+        "",
+        false,
+        0
+      ],
+      "widgets_values_named": {
+        "model_path": "",
+        "mmproj_path": "[none]",
+        "system": "",
+        "prompt": "",
+        "n_ctx": 16384,
+        "max_tokens": 2048,
+        "image_max_tokens": 0,
+        "seed": 45,
+        "control_after_generate": "fixed",
+        "stop": "",
+        "verbose": false,
+        "image_min_tokens": 0
+      }
+    },
+    {
+      "id": 7,
+      "type": "OllamaImageList_LlamaCppModelProfile",
+      "pos": [
+        210,
+        7250
+      ],
+      "size": [
+        240,
+        310
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 3,
+      "mode": 0,
+      "showAdvanced": true,
+      "inputs": [
+        {
+          "localized_name": "profile",
+          "name": "profile",
+          "type": "COMBO",
+          "widget": {
+            "name": "profile"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "custom_handler",
+          "name": "custom_handler",
+          "type": "COMBO",
+          "widget": {
+            "name": "custom_handler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "temperature",
+          "name": "temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "temperature"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "top_p",
+          "name": "top_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "top_p"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "top_k",
+          "name": "top_k",
+          "type": "INT",
+          "widget": {
+            "name": "top_k"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "min_p",
+          "name": "min_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "min_p"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "repeat_penalty",
+          "name": "repeat_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "repeat_penalty"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "presence_penalty",
+          "name": "presence_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "presence_penalty"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "model profile",
+          "name": "model profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "title": "#2 Llama.cpp Model Profile",
+      "properties": {
+        "cnr_id": "ollama-image-list",
+        "ver": "53dad7370f71541843c0367459078118b23c1b14",
+        "Node name for S&R": "OllamaImageList_LlamaCppModelProfile"
+      },
+      "widgets_values": [
+        "Qwen 3.5 Non-thinking",
+        "auto",
+        0.5,
+        0.95,
+        20,
+        0,
+        1,
+        0
+      ],
+      "widgets_values_named": {
+        "profile": "Qwen 3.5 Non-thinking",
+        "custom_handler": "auto",
+        "temperature": 0.5,
+        "top_p": 0.95,
+        "top_k": 20,
+        "min_p": 0,
+        "repeat_penalty": 1,
+        "presence_penalty": 0
+      }
+    },
+    {
+      "id": 8,
+      "type": "H3DirectorResponseValidator",
+      "pos": [
+        210,
+        7000
+      ],
+      "size": [
+        310,
+        180
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "raw_response",
+          "name": "raw_response",
+          "type": "STRING",
+          "link": 12
+        },
+        {
+          "localized_name": "analysis_json",
+          "name": "analysis_json",
+          "type": "STRING",
+          "link": 13
+        },
+        {
+          "localized_name": "director_context",
+          "name": "director_context",
+          "type": "STRING",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "current_direction",
+          "name": "current_direction",
+          "type": "STRING",
+          "links": [
+            19
+          ]
+        },
+        {
+          "localized_name": "h3_prompt",
+          "name": "h3_prompt",
+          "type": "STRING",
+          "links": [
+            20
+          ]
+        },
+        {
+          "localized_name": "analysis_json",
+          "name": "analysis_json",
+          "type": "STRING",
+          "links": [
+            21
+          ]
+        },
+        {
+          "localized_name": "validation",
+          "name": "validation",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "continuity_info",
+          "name": "continuity_info",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "repair_system",
+          "name": "repair_system",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "repair_prompt",
+          "name": "repair_prompt",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3DirectorResponseValidator"
+      }
+    },
+    {
+      "id": 9,
+      "type": "H3DirectorAnalysisCompose",
+      "pos": [
+        -170,
+        7000
+      ],
+      "size": [
+        320,
+        140
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "raw_analysis",
+          "name": "raw_analysis",
+          "type": "STRING",
+          "link": 15
+        },
+        {
+          "localized_name": "director_context",
+          "name": "director_context",
+          "type": "STRING",
+          "link": 16
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "system",
+          "name": "system",
+          "type": "STRING",
+          "links": [
+            10
+          ]
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": [
+            11
+          ]
+        },
+        {
+          "localized_name": "analysis_json",
+          "name": "analysis_json",
+          "type": "STRING",
+          "links": [
+            13
+          ]
+        },
+        {
+          "localized_name": "director_context",
+          "name": "director_context",
+          "type": "STRING",
+          "links": [
+            14
+          ]
+        },
+        {
+          "localized_name": "analysis_status",
+          "name": "analysis_status",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3DirectorAnalysisCompose"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "widgets_values_named": {
+        "director_reference_status": ""
+      }
+    },
+    {
+      "id": 10,
+      "type": "H3DirectorVRAMHandoff",
+      "pos": [
+        -500,
+        7020
+      ],
+      "size": [
+        280,
+        130
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "system",
+          "name": "system",
+          "type": "STRING",
+          "link": 17
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "link": 18
+        },
+        {
+          "localized_name": "enabled",
+          "name": "enabled",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "enabled"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "system",
+          "name": "system",
+          "type": "STRING",
+          "links": [
+            4
+          ]
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": [
+            5
+          ]
+        },
+        {
+          "localized_name": "diagnostics",
+          "name": "diagnostics",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3DirectorVRAMHandoff"
+      },
+      "widgets_values": [
+        true
+      ],
+      "widgets_values_named": {
+        "enabled": true
+      }
+    },
+    {
+      "id": 11,
+      "type": "H3DirectorShotState",
+      "pos": [
+        490,
+        7000
+      ],
+      "size": [
+        450,
+        870
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "current_direction",
+          "name": "current_direction",
+          "type": "STRING",
+          "link": 19
+        },
+        {
+          "localized_name": "current_h3_prompt",
+          "name": "current_h3_prompt",
+          "type": "STRING",
+          "link": 20
+        },
+        {
+          "localized_name": "current_analysis",
+          "name": "current_analysis",
+          "type": "STRING",
+          "link": 21
+        },
+        {
+          "localized_name": "materialized",
+          "name": "materialized",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "materialized"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "shot_direction",
+          "name": "shot_direction",
+          "type": "STRING",
+          "widget": {
+            "name": "shot_direction"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "shot_h3_prompt",
+          "name": "shot_h3_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "shot_h3_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "shot_analysis",
+          "name": "shot_analysis",
+          "type": "STRING",
+          "widget": {
+            "name": "shot_analysis"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "h3_prompt",
+          "name": "h3_prompt",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "direction",
+          "name": "direction",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "analysis_json",
+          "name": "analysis_json",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "H3DirectorShotState",
+        "director_state_schema": "obvpm.director.shot_state",
+        "director_state_schema_version": 1
+      },
+      "widgets_values": [
+        false,
+        "",
+        "",
+        "",
+        null,
+        null
+      ],
+      "widgets_values_named": {
+        "materialized": false,
+        "shot_direction": "",
+        "shot_h3_prompt": "",
+        "shot_analysis": "",
+        "Reset Director Context (clear saved state)": null,
+        "Recompose (keep analysis)": null
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      4,
+      0,
+      2,
+      0,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE"
+    ],
+    [
+      2,
+      5,
+      0,
+      2,
+      1,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE"
+    ],
+    [
+      3,
+      1,
+      2,
+      2,
+      4,
+      "IMAGE"
+    ],
+    [
+      4,
+      10,
+      0,
+      2,
+      9,
+      "STRING"
+    ],
+    [
+      5,
+      10,
+      1,
+      2,
+      10,
+      "STRING"
+    ],
+    [
+      6,
+      2,
+      0,
+      3,
+      0,
+      "STRING"
+    ],
+    [
+      7,
+      1,
+      3,
+      3,
+      1,
+      "STRING"
+    ],
+    [
+      8,
+      7,
+      0,
+      6,
+      0,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE"
+    ],
+    [
+      9,
+      5,
+      0,
+      6,
+      1,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE"
+    ],
+    [
+      10,
+      9,
+      0,
+      6,
+      9,
+      "STRING"
+    ],
+    [
+      11,
+      9,
+      1,
+      6,
+      10,
+      "STRING"
+    ],
+    [
+      12,
+      6,
+      0,
+      8,
+      0,
+      "STRING"
+    ],
+    [
+      13,
+      9,
+      2,
+      8,
+      1,
+      "STRING"
+    ],
+    [
+      14,
+      9,
+      3,
+      8,
+      2,
+      "STRING"
+    ],
+    [
+      15,
+      3,
+      0,
+      9,
+      0,
+      "STRING"
+    ],
+    [
+      16,
+      3,
+      1,
+      9,
+      1,
+      "STRING"
+    ],
+    [
+      17,
+      1,
+      0,
+      10,
+      0,
+      "STRING"
+    ],
+    [
+      18,
+      1,
+      1,
+      10,
+      1,
+      "STRING"
+    ],
+    [
+      19,
+      8,
+      0,
+      11,
+      0,
+      "STRING"
+    ],
+    [
+      20,
+      8,
+      1,
+      11,
+      1,
+      "STRING"
+    ],
+    [
+      21,
+      8,
+      2,
+      11,
+      2,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "H3 Director — Analysis Freeze + Recompose",
+      "bounding": [
+        -1010,
+        6930,
+        1960,
+        950
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.4177248169416939,
+      "offset": [
+        2775.54825619957,
+        -6153.541847160929
+      ]
+    }
+  },
+  "version": 0.4
+}

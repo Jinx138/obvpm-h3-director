@@ -1,0 +1,10 @@
+[project]
+name = "comfyui-h3-prompt-composer"
+version = "0.6.0rc23"
+description = "Backend-agnostic two-pass OBVPM Director nodes for MiniMax H3 Ref2VA prompts"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.comfy]
+PublisherId = "local"
+DisplayName = "H3 Prompt Composer"
