@@ -4,6 +4,77 @@ Backend-agnostic two-pass Director nodes for MiniMax H3 Ref2VA in ComfyUI.
 
 The Director owns semantic/visual analysis, continuity reasoning and H3 prompt composition. It does **not** own LLM inference, timeline editing, generation, takes, split/trim/join, Extend/Prepend/Bridge, Motion Context, Recipes or Provenance. Those remain external responsibilities (OBVPM where used).
 
+## See the Director in action
+
+A short, imperfect user direction becomes a reference-grounded, continuity-aware H3 prompt. The input below is reproduced **verbatim, including its typo**. The Director keeps the spoken words intact while resolving the two characters, their reference pictures, the room, camera framing, and speaker IDs.
+
+> [!NOTE]
+> **INPUT — raw user direction**
+>
+> ```text
+> The young mnan in the white shirt sits down next to the older one and says: "Hey Dad! How are you feeling today?" The man replies a bit tired: "Fine, fine my son, I'm better now".
+> ```
+
+> [!TIP]
+> **OUTPUT — structured H3 prompt (selected lines)**
+>
+> ```text
+> <Subject 1> is the older man with short dark hair and glasses,
+> wearing a light blue button-up shirt, in <Picture 1>.
+> <Subject 2> is the younger man with short dark wavy hair,
+> clean-shaven, wearing a white collared shirt, in <Picture 2>.
+> <Subject 3> is the rustic living room with stone walls,
+> wooden ceiling beams, sofas and armchairs, in <Picture 3>.
+>
+> <Subject 2> (S1) looks at his father with concern and asks,
+> <d>[English] Hey Dad! How are you feeling today?</d>
+> <Subject 1> (S2) gazes back at him with a weary, sad expression
+> and replies softly,
+> <d>[English] Fine, fine my son, I'm better now.</d>
+> ```
+
+<details>
+<summary><strong>Read the full generated H3 prompt (all six sections)</strong></summary>
+
+```text
+subject_definitions:
+<Subject 1> is the older man with short dark hair and glasses, wearing a light blue button-up shirt, in <Picture 1>.
+<Subject 2> is the younger man with short dark wavy hair, clean-shaven, wearing a white collared shirt, in <Picture 2>.
+<Subject 3> is the rustic living room with stone walls, wooden ceiling beams, sofas and armchairs, side tables, lamps, and potted plants, in <Picture 3>.
+
+summary:
+[video continuation + reference generation] The younger man sits down beside the older man on the sofa, places his hand on the older man's shoulder, and asks about his health. The older man replies with weary reassurance that he is better now.
+
+retention_analysis:
+<Subject 1> (appears in [Shot 1]): fully_preserved - facial identity and the shot-visible defining characteristics are retained.
+<Subject 2> (appears in [Shot 1]): fully_preserved - facial identity and the shot-visible defining characteristics are retained.
+<Subject 3> (appears in [Shot 1]): fully_preserved - the environment is retained.
+
+detailed_description:
+Naturalistic live-action drama with soft, warm indoor light, muted color grading, and a quiet, intimate domestic mood.
+[Shot 1] The camera holds a static medium two-shot of <Subject 3>'s living room, where the two men are seated side-by-side on a sofa, with a window with sheer curtains behind them and a potted plant to the right. <Subject 2> is on the left and <Subject 1> is on the right; <Subject 2>'s hand rests gently on <Subject 1>'s shoulder. <Subject 2> (S1) looks at his father with concern and asks, <d>[English] Hey Dad! How are you feeling today?</d> <Subject 1> (S2) gazes back at him with a weary, sad expression and replies softly, <d>[English] Fine, fine my son, I'm better now.</d> The shot ends with both men still seated closely together, the older man's tired face and the younger man's concerned gaze remaining fixed on each other.
+
+overall_soundscape:
+Quiet domestic ambience with faint room tone; no music, no significant non-diegetic sound.
+
+non_diegetic_music:
+N/A
+```
+
+</details>
+
+The character descriptions and living-room details come from the connected picture references and inherited scene context—not from the short user direction alone. This is an actual Director output, not an idealized template.
+
+### OBVPM integration at a glance
+
+![OBVPM H3 Director — two-pass analysis, freeze/recompose, validation and editable H3 prompt integrated into OBVPM](docs/images/obvpm-director-workflow-overview.png)
+
+The workflow is arranged from **OBVPM inputs on the left** through **visual analysis and prompt composition in the middle** to the **editable, materialized H3 prompt on the right**.
+
+**Try the example:** [Open the portable ComfyUI workflow](examples/H3-Director-Analysis-Freeze-Recompose.json) · [Quick start and installation](#quick-start) · [Release notes](RELEASE_NOTES.md)
+
+The example shows the public Director integration only; it does **not** include proprietary OBVPM Pro generation workflows.
+
 ## Quick start
 
 **Status:** `v0.6.0rc23` is a public release candidate (pre-release), not a final stable release.
@@ -19,9 +90,9 @@ git clone https://github.com/Jinx138/obvpm-h3-director.git h3-prompt-composer
 
 The Director itself does not install or bundle an LLM backend, model weights, video generator, or OBVPM Pro workflow.
 
-### Example workflow
+### Configure the example workflow
 
-Open [`examples/H3-Director-Analysis-Freeze-Recompose.json`](examples/H3-Director-Analysis-Freeze-Recompose.json) in ComfyUI. The example is **Director-only** and preserves the left-to-right layout from input Direction and Pictures to the materialized H3 prompt. It uses the external `ollama-image-list` llama.cpp nodes for its two Generate passes; install/configure those nodes separately to run this particular example.
+The linked example uses external `ollama-image-list` llama.cpp nodes for its two Generate passes; install/configure those nodes separately to run this particular example.
 
 Select your own local model file in **both** Generate nodes, plus a matching `mmproj` for vision-capable **Generate #1**. **Generate #2** is text-only and has no image input or `mmproj` requirement. Choose offloading and model parameters appropriate to your hardware. Connect an H3 / OBVPM generation workflow separately if desired.
 
