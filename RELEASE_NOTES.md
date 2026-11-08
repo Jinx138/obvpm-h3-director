@@ -10,6 +10,7 @@
 - Stable reference-based Subject mapping, `viewer`/POV behavior and soft `target_perspective` versus hard `end_keyframe` roles.
 - Deterministic preservation of explicitly quoted user dialogue and conservative normalization of missing speaker IDs, with a fail-closed Validator.
 - A portable, Director-only ComfyUI example workflow using optional external llama.cpp Generate nodes, with no bundled model paths, pictures or proprietary OBVPM Pro workflow.
+- OBVPM save/restore compatibility: the example Director group carries the required `Director [restore]` title so it can participate in OBVPM group-based restoration. Materialized Shot Editor values can be saved with planned shots; OBVPM itself owns the save/restore lifecycle.
 
 ## Recommended models — optional
 
