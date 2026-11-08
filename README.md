@@ -12,25 +12,22 @@ A short, imperfect user direction becomes a reference-grounded, continuity-aware
 > **INPUT — raw user direction**
 >
 > ```text
-> The young mnan in the white shirt sits down next to the older one and says: "Hey Dad! How are you feeling today?" The man replies a bit tired: "Fine, fine my son, I'm better now".
+> The young mnan in the white shirt sits down next to the older one and says: "Hey Dad! How are you feeling today?"
+> The man replies a bit tired: "Fine, fine my son, I'm better now".
 > ```
 
 > [!TIP]
-> **OUTPUT — structured H3 prompt (selected lines)**
+> **OUTPUT — structured H3 prompt (detailed_description)**
 >
 > ```text
-> <Subject 1> is the older man with short dark hair and glasses,
-> wearing a light blue button-up shirt, in <Picture 1>.
-> <Subject 2> is the younger man with short dark wavy hair,
-> clean-shaven, wearing a white collared shirt, in <Picture 2>.
-> <Subject 3> is the rustic living room with stone walls,
-> wooden ceiling beams, sofas and armchairs, in <Picture 3>.
->
-> <Subject 2> (S1) looks at his father with concern and asks,
-> <d>[English] Hey Dad! How are you feeling today?</d>
-> <Subject 1> (S2) gazes back at him with a weary, sad expression
-> and replies softly,
-> <d>[English] Fine, fine my son, I'm better now.</d>
+> Naturalistic live-action drama with soft, warm indoor light, muted color grading, and a quiet, intimate domestic mood.
+> [Shot 1] The camera holds a static medium two-shot of <Subject 3>'s living room, where the two men are seated
+> side-by-side on a sofa, with a window with sheer curtains behind them and a potted plant to the right. <Subject 2>
+> is on the left and <Subject 1> is on the right; <Subject 2>'s hand rests gently on <Subject 1>'s shoulder.
+> <Subject 2> (S1) looks at his father with concern and asks, <d>[English] Hey Dad! How are you feeling today?</d>
+> <Subject 1> (S2) gazes back at him with a weary, sad expression and replies softly, <d>[English] Fine, fine my son,
+> I'm better now.</d> The shot ends with both men still seated closely together, the older man's tired face and the
+> younger man's concerned gaze remaining fixed on each other.
 > ```
 
 <details>
@@ -67,13 +64,28 @@ The character descriptions and living-room details come from the connected pictu
 
 ### OBVPM integration at a glance
 
-![OBVPM H3 Director — two-pass analysis, freeze/recompose, validation and editable H3 prompt integrated into OBVPM](docs/images/obvpm-director-workflow-overview.png)
+   ![OBVPM H3 Director — two-pass analysis, freeze/recompose, validation and editable H3 prompt integrated into OBVPM](docs/images/obvpm-director-workflow-overview.png)
 
 The workflow is arranged from **OBVPM inputs on the left** through **visual analysis and prompt composition in the middle** to the **editable, materialized H3 prompt on the right**.
 
 **Try the example:** [Open the portable ComfyUI workflow](examples/H3-Director-Analysis-Freeze-Recompose.json) · [Quick start and installation](#quick-start) · [Release notes](RELEASE_NOTES.md)
 
 The example shows the public Director integration only; it does **not** include proprietary OBVPM Pro generation workflows.
+
+### Save & restore with OBVPM
+
+**Important: the ComfyUI group title must include the literal `[restore]` marker.** The example's Director group is named exactly **`Director [restore]`**. OBVPM's group-based save/restore recognizes this marker in the **group title**, not in a node's name. If you copy the Director block into another OBVPM workflow, preserve that group title (or at least its `[restore]` marker). Without it, OBVPM may omit the Director group when saving and restoring a planned shot.
+
+Recommended OBVPM workflow:
+
+1. Run the Director's visual analysis and composition passes for the current shot. Inspect the H3 prompt, edit it if needed, and **materialize/freeze** the approved result in **H3 Director Shot Editor (obvpm)**.
+2. Save the planned shot through **OBVPM** (for example using **`+ plan`**). OBVPM owns this shot-level save/restore operation; the Director only supplies its editable, materialized state.
+3. When OBVPM restores the saved shot, the `[restore]` group makes the Director state eligible for restoration. The approved materialized prompt can then be reused for generation or Seed Hunt without rerunning the LLM passes.
+4. For a genuinely new shot or project, use **Re-analyze** or **Reset Director Context** as appropriate; restoring a saved shot is not the same operation as resetting its Director state.
+
+If your OBVPM setup uses `skip_restore_nodes`, a node title containing **`[skip]`** can exclude selected temporary authoring nodes from restoration. Do **not** exclude the materialized Shot Editor if you want its approved prompt to be restored.
+
+**Scope:** `[restore]` is an OBVPM integration convention, not a Director-owned save service. In standalone ComfyUI the marker is just group-title text. The public example contains the Director block only; it does not ship OBVPM's proprietary timeline, planning or generation workflow.
 
 ## Quick start
 
@@ -95,6 +107,7 @@ The Director itself does not install or bundle an LLM backend, model weights, vi
 The linked example uses external `ollama-image-list` llama.cpp nodes for its two Generate passes; install/configure those nodes separately to run this particular example.
 
 Select your own local model file in **both** Generate nodes, plus a matching `mmproj` for vision-capable **Generate #1**. **Generate #2** is text-only and has no image input or `mmproj` requirement. Choose offloading and model parameters appropriate to your hardware. Connect an H3 / OBVPM generation workflow separately if desired.
+For OBVPM save/restore, keep the imported Director group titled `Director [restore]` when integrating it into your production workflow.
 
 **Recommended, not required:** Qwen3.8-27B GGUF models in non-thinking mode were used for our practical tests. The Director's LLM interfaces are ordinary `system`/`prompt` text (plus a separate image list for the vision pass) and can be connected to other compatible providers and ComfyUI inference nodes. Some third-party tuning/quantization/model variants will perform differently; no specific checkpoint is bundled.
 
