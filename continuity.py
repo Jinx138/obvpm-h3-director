@@ -27,12 +27,16 @@ def classify_pin_specs(pin_specs) -> Dict[str, Any]:
     Unsupported/duplicate placement specs are reported instead of guessed.
     """
     specs = _specs(pin_specs)
-    before = [s for s in specs if str(s.get("place") or "").casefold() == "before"]
-    after = [s for s in specs if str(s.get("place") or "").casefold() == "after"]
-    other = [
-        s for s in specs
-        if str(s.get("place") or "").casefold() not in {"before", "after"}
-    ]
+    # OBVPM 0.5.x multiplexes continuity endpoint pins and A1 audio-track
+    # metadata through the same pin_specs list. Track entries are not seam
+    # endpoints: they must never turn a valid Extend/Prepend/Bridge into New.
+    # Mirror OBVPM's split_specs convention (place == "track"), without
+    # analyzing the actual audio or modifying OBVPM's A1 handling.
+    tracks = [s for s in specs if str(s.get("place") or "").casefold() == "track"]
+    endpoints = [s for s in specs if str(s.get("place") or "").casefold() != "track"]
+    before = [s for s in endpoints if str(s.get("place") or "").casefold() == "before"]
+    after = [s for s in endpoints if str(s.get("place") or "").casefold() == "after"]
+    other = [s for s in endpoints if str(s.get("place") or "").casefold() not in {"before", "after"}]
     warnings = []
 
     if other:
@@ -47,13 +51,13 @@ def classify_pin_specs(pin_specs) -> Dict[str, Any]:
     start = before[0] if len(before) == 1 else None
     target = after[0] if len(after) == 1 else None
 
-    if start is not None and target is not None and not other and len(specs) == 2:
+    if start is not None and target is not None and not other and len(endpoints) == 2:
         operation = "bridge"
-    elif start is not None and target is None and not other and len(specs) == 1:
+    elif start is not None and target is None and not other and len(endpoints) == 1:
         operation = "extend"
-    elif start is None and target is not None and not other and len(specs) == 1:
+    elif start is None and target is not None and not other and len(endpoints) == 1:
         operation = "prepend"
-    elif not specs:
+    elif not endpoints:
         operation = "new"
     else:
         operation = "new"
@@ -63,7 +67,8 @@ def classify_pin_specs(pin_specs) -> Dict[str, Any]:
         "operation": operation,
         "start_spec": start,
         "target_spec": target,
-        "pin_count": len(specs),
+        "pin_count": len(endpoints),
+        "audio_track_count": len(tracks),
         "warnings": warnings,
     }
 

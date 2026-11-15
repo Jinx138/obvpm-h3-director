@@ -1,3 +1,42 @@
+# Changelog
+
+## v0.6.0 — 2026-11-15 (rc25b.2 tested baseline)
+
+- Public release preparation based on the tested rc25b.2 code baseline, with no implementation changes to the Director's Python or frontend JavaScript.
+- `H3DirectorRecipePrompt`: a literal OBVPM-compatible Recipe prompt with separate `[restore]` group, explicit Apply fallback, and guarded automatic preparation of empty new-shot Recipes.
+- Conservative new NEXT RUN detection for Extend/Prepend/Bridge reservations and tail-appended new Root takes, while preserving historical clip Recipes and populated drafts.
+- Up to nine dynamically shown picture sockets and OBVPM Timeline 0.5.2 `length` frame input (24 fps), with the standalone duration widget retained.
+- New recommended public Director-only Recipe example plus updated workflow screenshots and clearer user-facing documentation.
+
+## v0.6.0rc25a test — 2026-11-14
+
+- Prototype OBVPM Timeline 0.5.2 native Recipe integration without Fantastic: a persistent one-widget H3 Director Recipe Prompt node and explicit one-way Apply action from the materialized Shot Editor.
+- Separate the Director workspace from one `[restore]` Recipe Prompt group; no automatic clip-sync mutation of Director analysis/materialization.
+- Base on user-verified rc24 UI5; retain its existing Timeline auto-unfreeze behavior and leave the rejected experimental UI6 fix out.
+- No prompt-policy, H3 grammar, LLM, media or continuity backend changes. Local testbuild, not a GitHub release.
+
+## v0.6.0rc24 UI5 (local test build; November 14, 2026)
+
+- Keep `duration_seconds` as a **socketless** editable FLOAT widget. It no longer produces a connectable socket that drifts above picture inputs on workflow reload (requires ComfyUI frontend >= 1.17.5).
+- Rename optional Director frame-count input `total_frames` to `length`, matching OBVPM Timeline Unbundle. The tooltip explains that this is the Timeline `length` output, in frames at 24 fps; the value takes precedence over the standalone duration widget.
+- After loading a previously saved UI4 workflow, migrate a connected `total_frames` socket to `length` by name and discard any legacy connected `duration_seconds` socket. Reconnect the Timeline's `length` output if the migration cannot resolve the old serialized link.
+- No changes to Director prompt logic, H3 Picture numbering, Continuity, materialization or the released rc23.
+
+## v0.6.0rc24 UI4 (local test build; November 14, 2026)
+
+- Stabilize dynamic picture-slot link indices across saved-workflow reloads; defer socket mutations until after the graph is configured.
+- Add optional `total_frames` from OBVPM Timeline `length` at 24 fps, keeping the standalone duration widget as fallback.
+- No changes to prompt policy, materialization, Continuity classification or released rc23.
+
+## v0.6.0rc24 — P0/P1 local test build (2026-11-08)
+
+- OBVPM 0.5.2 A1 track entries do not interfere with video pin classification.
+- Request Builder gains nine stable one-based picture inputs, progressive
+  frontend sockets and reserved AUDIO/VIDEO inputs.
+- Larger Direction editor, unchanged positional widgets and Shot State.
+- Full testing/rollback notes in `PATCH_NOTES_rc24_P0_P1.md`.
+- No LLM prompt-policy change; rc23 remains the published release candidate.
+
 ## 0.6.0rc23 — 2026-11-07
 
 - **Strictly missing vocal markers:** extend the rc17 live-output speaker-ID normalizer to recognize uniquely referenced descriptive speakers such as "the younger man" / "the older man in the blue shirt", using the same conservative resolver as rc22. An adjacent speech-action cue is required before adding an `(Sx)`; unrelated Subject mentions, offscreen voices, or uncertain attribution are not corrected.

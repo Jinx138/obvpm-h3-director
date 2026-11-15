@@ -88,7 +88,7 @@ class TestReferenceRoles(unittest.TestCase):
     def test_old_workflow_works_without_new_optional_widget(self):
         data = self.builder.build(direction="Hello", duration_seconds=5.2, picture_1="p1")
         self.assertIn("picture_slots", data[3])
-        self.assertIn("reference_roles", nodes.H3DirectorRequestBuilder.INPUT_TYPES()["optional"])
+        self.assertIn("reference_roles", nodes.H3DirectorRequestBuilder.INPUT_TYPES()["required"])
 
     def test_target_perspective_and_end_keyframe_overrides(self):
         parsed = parse_overrides("""Picture 4: target perspective

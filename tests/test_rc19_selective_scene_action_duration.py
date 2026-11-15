@@ -49,16 +49,17 @@ def h3(visible_room=True, room_definition=True, detail=None):
 
 
 class TestDurationPassthrough(unittest.TestCase):
-    def test_existing_float_input_and_new_output_no_extra_node(self):
+    def test_requested_duration_stays_in_context_without_redundant_output(self):
         b = nodes.H3DirectorRequestBuilder
-        self.assertEqual(b.INPUT_TYPES()['required']['duration_seconds'][0], 'FLOAT')
-        self.assertNotIn('timeline_length_frames', b.INPUT_TYPES()['optional'])
-        self.assertEqual(b.RETURN_NAMES[-1], 'duration_seconds')
-        self.assertEqual(b.RETURN_TYPES[-1], 'FLOAT')
+        inputs = b.INPUT_TYPES()
+        self.assertEqual(list(inputs['required']), ['direction', 'reference_roles', 'duration_seconds'])
+        self.assertEqual(inputs['required']['duration_seconds'][0], 'FLOAT')
+        self.assertNotIn('timeline_length_frames', inputs['optional'])
+        self.assertNotIn('duration_seconds', b.RETURN_NAMES)
+        self.assertEqual(len(b.RETURN_NAMES), len(b.RETURN_TYPES))
         self.assertNotIn('H3DirectorDuration', nodes.NODE_CLASS_MAPPINGS)
         result = b().build('Aster and Bryn move on the carpet.', 5.2)
-        self.assertEqual(len(result), 7)
-        self.assertEqual(result[-1], 5.2)
+        self.assertEqual(len(result), 6)
         ctx = json.loads(result[3])
         self.assertEqual(ctx['duration_seconds'], 5.2)
         self.assertNotIn('generation_frames', ctx)

@@ -1,38 +1,37 @@
-# v0.6.0rc23 — Release candidate
+# OBVPM Director v0.6.0
 
-**Release status:** Pre-release. Proven in local ComfyUI testing; not a guarantee of identical behavior with other LLMs or H3 checkpoints.
+**Version 0.6.0 · 15 November 2026 · Based on the extensively live-tested rc25b.2 build**
+
+This release brings a more practical shot-planning and prompt-preservation workflow to **MiniMax H3 Ref2VA in ComfyUI**, with dedicated Recipe integration for **OBVPM Timeline 0.5.2**.
 
 ## Highlights
 
-- Two externally hosted LLM passes: multimodal visual/semantic analysis followed by text-only H3 prompt composition. No built-in provider, inference engine or automatic third repair LLM.
-- Explicitly materialized **Analysis Snapshot** and **Shot Editor** with separate **Re-analyze** and **Recompose** controls.
-- Continuity support for OBVPM **Extend, Prepend and Bridge** from START/TARGET boundary states, without replaying completed actions.
-- Stable reference-based Subject mapping, `viewer`/POV behavior and soft `target_perspective` versus hard `end_keyframe` roles.
-- Deterministic preservation of explicitly quoted user dialogue and conservative normalization of missing speaker IDs, with a fail-closed Validator.
-- A portable, Director-only ComfyUI example workflow using optional external llama.cpp Generate nodes, with no bundled model paths, pictures or proprietary OBVPM Pro workflow.
-- OBVPM save/restore compatibility: the example Director group carries the required `Director [restore]` title so it can participate in OBVPM group-based restoration. Materialized Shot Editor values can be saved with planned shots; OBVPM itself owns the save/restore lifecycle.
+- **Editable Recipe Prompt.** `H3 Director Recipe Prompt (obvpm)` holds the literal prompt used for video generation. OBVPM saves and restores this text through the dedicated `Director Prompt [restore]` group, while the main Director Workspace stays focused on your current shot.
+- **Automatic preparation for new shots.** Fresh Extend, Prepend, and Bridge reservations prepare the Director for the next shot. After successful materialization, a new prompt can populate an empty Recipe field automatically. Manual **Apply approved prompt to Recipe** remains available for deliberate updates.
+- **Root advancement.** A new Root take appended at the end of the video track can prepare the next Root shot, using the timeline's new tail-media information.
+- **More flexible inputs.** Up to nine dynamically displayed picture references, optional media inputs, an expanded Direction editor, and frame-length integration with OBVPM Timeline 0.5.2.
+- **Proven two-pass directing.** Vision-grounded analysis, text-based H3 composition, verbatim user dialogue, continuity reasoning, reference attribution, validator feedback, and independent analysis/shot materialization.
+- **Updated workflow and documentation.** The new `H3-Director-Recipe-MVP.json` demonstrates the separate Director Workspace and Recipe Prompt groups, accompanied by real ComfyUI screenshots.
 
-## Recommended models — optional
+## Working with Recipes
 
-**Qwen3.8-27B GGUF, preferably a suitable non-thinking configuration**, is our practical recommendation based on local testing. No particular finetune, quantization, model path, model runtime, or hardware is required by the Director itself.
+1. Select a fresh **NEXT RUN** in OBVPM, or prepare a standalone Director shot.
+2. Run the Director to analyze the references and materialize an approved H3 prompt.
+3. Review the Recipe Prompt. A fresh, empty Recipe may be filled automatically; use **Apply approved prompt to Recipe** to replace it deliberately.
+4. Queue H3 generation with the Recipe Prompt connected directly to the H3 conditioning prompt input.
 
-- **Generate #1:** vision-capable model plus its corresponding multimodal projector (`mmproj`).
-- **Generate #2:** text-only prompt composer; do not connect the reference-image list or require an `mmproj`.
-- The included example uses external `ollama-image-list` llama.cpp profile/generation nodes. This is **one integration example**, not an obligatory backend.
-- Context size, token budget and GPU offloading depend on local hardware and available models. The example's hardware/profile settings are illustrative.
+**The current workflow uses two queue steps:** first the Director, then H3 generation. This ensures the approved literal prompt is available when OBVPM captures the take's Recipe.
 
-## Known limitations and validation policy
+## Setup and compatibility
 
-- The Validator deliberately reports `FAIL` when formally required bindings or speaker IDs are absent, even if the resulting H3 video looks acceptable; **do not assume `PASS` guarantees a good video or `FAIL` proves a bad one**.
-- Missing dialogue IDs are auto-inserted only where uniquely grounded. Incorrect IDs, ambiguous speaker attribution and rewritten user dialogue are not auto-fixed.
-- A `target_perspective` reference is a soft Director-level camera goal, not a guarantee that the H3 image-conditioning path will weight or time the picture softly. When targeting a substantially different perspective, verify your own generation workflow's image/first-frame wiring.
-- Some Continuity workflows require OBVPM to provide actual pin specs and boundary frames. The example JSON is not a replacement for an H3 video-generation workflow.
-- Materialized outputs remain user-authoritative; use **Reset Director Context**, **Re-analyze**, and **Recompose** intentionally.
+- **ComfyUI:** Python 3.10+.
+- **LLM interfaces:** vision-capable Generate #1 and text-based Generate #2. The included example uses external `ollama-image-list` llama.cpp nodes; configure your preferred models, matching VLM projector (`mmproj`) where applicable, and hardware settings.
+- **OBVPM:** Recipe and timeline behavior developed for OBVPM Timeline 0.5.2.
+- **Continuity:** Extend, Prepend, and Bridge read START/TARGET context supplied by OBVPM.
+- **Root detection:** automatically reacts to newly observed tail video paths on the Root track. Manually appended new files can trigger the same observation.
+- **Recipe behavior:** the automatic transfer fills an empty Recipe for a fresh unique reservation and a single Recipe Prompt node; existing text is preserved until explicitly replaced.
+- **Validation:** PASS confirms structural and semantic contracts. Final visual results depend on the H3 model and its conditioning settings.
 
-## Installation
+Install or update the `h3-prompt-composer/` directory under `ComfyUI/custom_nodes/`, restart ComfyUI, and open the [Recipe example](examples/H3-Director-Recipe-MVP.json). See the [README](README.md) for a guided walkthrough and the [changelog](CHANGELOG.md) for development details.
 
-See the repository [`README.md`](README.md) for setup, node responsibilities, wiring and compatibility. The release tag for this candidate is `v0.6.0rc23`.
-
-## Distribution boundary
-
-This repository contains the Director's modular public-source code and its illustrative Director-only workflow. It does **not** include Patreon-exclusive OBVPM Pro workflow JSONs, private user scenes, personal reference images, H3 weights or third-party model packages.
+**Verification:** 120 Python tests and all six frontend regression scripts passed during release preparation. The Director implementation files match the tested rc25b.2 source archive byte for byte.

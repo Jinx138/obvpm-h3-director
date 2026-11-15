@@ -207,7 +207,7 @@ class H3DirectorRequestBuilder:
     """Build the Director analysis request without owning the LLM runtime."""
     CATEGORY = "obvpm/director"
     FUNCTION = "build"
-    RETURN_TYPES = ("STRING", "STRING", "IMAGE", "STRING", "STRING", "STRING", "FLOAT")
+    RETURN_TYPES = ("STRING", "STRING", "IMAGE", "STRING", "STRING", "STRING")
     RETURN_NAMES = (
         "system",
         "prompt",
@@ -215,51 +215,78 @@ class H3DirectorRequestBuilder:
         "director_context",
         "current_direction",
         "continuity_info",
-        "duration_seconds",
     )
     # llm_images is intentionally a real ComfyUI list so differently-sized
     # references can travel independently to multimodal LLM Generate nodes.
-    OUTPUT_IS_LIST = (False, False, True, False, False, False, False)
+    OUTPUT_IS_LIST = (False, False, True, False, False, False)
 
     @classmethod
     def INPUT_TYPES(cls):
+        # Native ComfyUI widgets render in required-field declaration order,
+        # before the optional sockets. Put duration LAST among widgets so it
+        # appears below Direction and Reference Roles, not between them.
+        # reference_roles remains semantically optional (blank = Auto); it is
+        # declared as a required UI widget solely to control its layout.
         return {
             "required": {
                 "direction": ("STRING", {
                     "multiline": True,
                     "default": "the two talk about cars",
-                    "tooltip": "Ordinary directing prose. The Director analysis pass derives reference roles, story semantics and H3 intent.",
+                    "tooltip": "Describe this shot: action, camera, staging and any dialogue you explicitly want.",
                 }),
-                "duration_seconds": ("FLOAT", {
-                    "default": 5.2, "min": 1.0, "max": 15.0, "step": 0.1,
-                    "tooltip": "Requested H3 duration in seconds. Passed through as FLOAT output; OBVPM Timeline owns frame snapping and overlaps.",
-                }),
-
-            },
-            "optional": {
                 "reference_roles": ("STRING", {
                     "multiline": True, "default": "",
                     "tooltip": (
-                        "Optional picture role/identity corrections; blank = Auto. "
-                        "One line per slot, e.g. 'Picture 1: Alex (character)', "
-                        "'Picture 2: living room (location)', 'Picture 3: target perspective', "
-                        "or 'Picture 4: end keyframe'. "
-                        "The user direction is interpreted first; analysis resolves remaining roles visually."
+                        "Optional picture assignments, one per line: "
+                        "'Picture 1: Alex (character)' or 'Picture 3: living room (location)'. "
+                        "Leave blank for automatic matching."
                     ),
                 }),
-                "pin_specs": ("OBVPM_H3_PINSPECS", {
+                "duration_seconds": ("FLOAT", {
+                    "default": 5.2, "min": 1.0, "max": 15.0, "step": 0.1,
+                    # The Timeline `length` socket is authoritative when used.
+                    # Keep this FLOAT as a local widget only: a second linked
+                    # socket drifts with dynamic picture inputs on graph reload.
+                    "socketless": True,
+                    "tooltip": "Standalone duration in seconds. Overridden when OBVPM Unbundle 'length' is connected.",
+                }),
+            },
+            "optional": {
+                # OBVPM 0.5.x Unbundle (obvpm) exposes each named bundle
+                # field as a wildcard (*) even when its payload is typed.
+                # Accept that transport type; classify_pin_specs still checks
+                # the actual before/after/track entries after execution.
+                "pin_specs": ("*", {
                     "tooltip": (
-                        "Optional OBVPM H3 pin_specs. One before pin = Extend, one after pin = Prepend, "
-                        "one before + one after = Bridge. OBVPM still owns execution; the Director only "
-                        "uses the endpoints as continuity context."
+                        "Connect OBVPM Unbundle 'pin_specs' for Extend, Prepend or Bridge continuity. "
+                        "Audio-track pins do not affect shot boundaries."
                     ),
                 }),
-                "picture_1": ("IMAGE",),
-                "picture_2": ("IMAGE",),
-                "picture_3": ("IMAGE",),
-                "picture_4": ("IMAGE",),
+                # Reserved, typed connection points. Intentionally ignored by
+                # this version: no hidden inference, decoding, or track binding.
+                "audio_in": ("AUDIO", {"tooltip": "Reserved for future audio analysis; ignored in this version."}),
+                "video_in": ("VIDEO", {"tooltip": "Reserved for future video analysis; ignored in this version."}),
+                **{f"picture_{i}": ("IMAGE",) for i in range(1, 10)},
+                # OBVPM Timeline 0.5.2 Unbundle `length` is a wildcard field
+                # with an INTEGER frame count at the timeline's fixed 24 fps.
+                # Append rather than insert before existing sockets to limit
+                # index migration for previously serialized workflows.
+                "length": ("*", {
+                    "tooltip": (
+                        "Connect OBVPM Timeline Unbundle 'length' (total frames at 24 fps). "
+                        "Overrides duration_seconds; leave the Timeline duration_seconds input unlinked."
+                    ),
+                }),
             },
         }
+
+    @classmethod
+    def VALIDATE_INPUTS(cls, input_types):
+        # ComfyUI does not consistently validate wildcard source links to
+        # custom datatypes. The wildcard is restricted to pin_specs; all other
+        # sockets keep their ordinary declared frontend types. Runtime pin
+        # classification remains unchanged (unsupported placements fail closed).
+        return True
 
     @staticmethod
     def _load_endpoint(spec, role, llm_images, numbered_picture_count):
@@ -346,8 +373,16 @@ class H3DirectorRequestBuilder:
 
     def build(self, direction, duration_seconds, pin_specs=None,
               picture_1=None, picture_2=None, picture_3=None, picture_4=None,
-              reference_roles=""):
-        indexed = [(1, picture_1), (2, picture_2), (3, picture_3), (4, picture_4)]
+              reference_roles="", audio_in=None, video_in=None,
+              picture_5=None, picture_6=None, picture_7=None, picture_8=None,
+              picture_9=None, total_frames=None, length=None):
+        # Numbered images stay one-based, matching H3 <Picture N> grammar.
+        # Noncontiguous older workflows remain valid: never renumber pictures.
+        indexed = [
+            (1, picture_1), (2, picture_2), (3, picture_3),
+            (4, picture_4), (5, picture_5), (6, picture_6),
+            (7, picture_7), (8, picture_8), (9, picture_9),
+        ]
         connected = [(slot, pic) for slot, pic in indexed if pic is not None]
         picture_slots = [slot for slot, _ in connected]
         llm_images = [pic for _, pic in connected]
@@ -358,6 +393,7 @@ class H3DirectorRequestBuilder:
             "prompt_policy_version": SKILL_VERSION,
             "operation": operation,
             "pin_count": int(classified.get("pin_count") or 0),
+            "audio_track_count": int(classified.get("audio_track_count") or 0),
             "start_endpoint": None,
             "target_endpoint": None,
             "warnings": list(classified.get("warnings") or []),
@@ -390,7 +426,32 @@ class H3DirectorRequestBuilder:
         continuity_note = "\n".join(x for x in continuity_note_parts if x)
 
         direction = str(direction or "").strip()
-        requested_duration = float(duration_seconds)
+        # `total_frames` is a deprecated API alias used by the UI4 testbuild.
+        # UI5 displays/serializes the OBVPM field name `length` directly.
+        supplied_length = length if length is not None else total_frames
+        if supplied_length is None:
+            requested_duration = float(duration_seconds)
+            duration_source = "duration_seconds"
+            duration_frames = None
+        else:
+            # Timeline frame counts are already snapped to the H3 run grid.
+            # Do not round to 17k+5 or to the audio mask grid a second time.
+            # In OBVPM Timeline 0.5.2, the timeline FPS is fixed at 24.
+            import math
+            try:
+                numeric_frames = float(supplied_length)
+                if (not math.isfinite(numeric_frames)
+                        or numeric_frames <= 0
+                        or not numeric_frames.is_integer()):
+                    raise ValueError("frame count must be a positive integer")
+                duration_frames = int(numeric_frames)
+            except (TypeError, ValueError, OverflowError) as exc:
+                raise ValueError(
+                    f"OBVPM `length` expects a positive integer frame count, "
+                    f"got {supplied_length!r}"
+                ) from exc
+            requested_duration = duration_frames / 24.0
+            duration_source = "timeline_length_frames"
         reference_brief = make_reference_brief(direction, reference_roles, picture_slots)
         analysis_prompt = analysis_user_prompt(
             direction,
@@ -416,6 +477,9 @@ class H3DirectorRequestBuilder:
             "continuity_note": continuity_note,
             "continuity": continuity,
         }
+        if duration_frames is not None:
+            context["duration_source"] = duration_source
+            context["duration_frames"] = duration_frames
         context_json = json.dumps(context, ensure_ascii=False, indent=2)
         continuity_info = json.dumps(continuity, ensure_ascii=False, indent=2)
         return (
@@ -425,7 +489,6 @@ class H3DirectorRequestBuilder:
             context_json,
             direction,
             continuity_info,
-            requested_duration,
         )
 
 
@@ -444,7 +507,7 @@ class H3DirectorVRAMHandoff:
                 "prompt": ("STRING", {"forceInput": True}),
                 "enabled": ("BOOLEAN", {
                     "default": True,
-                    "tooltip": "Unload ComfyUI-managed models and clear PyTorch CUDA cache immediately before the external/local LLM branch.",
+                    "tooltip": "When enabled, unload ComfyUI-managed models and clear CUDA cache before the external LLM runs.",
                 }),
             }
         }
@@ -491,19 +554,19 @@ class H3DirectorAnalysisSnapshot:
                 "materialized": ("BOOLEAN", {
                     "default": False,
                     "tooltip": (
-                        "ON: reuse the saved Pass #1 analysis AND matching Director context; "
-                        "Generate #1 / VRAM Handoff stay asleep. OFF: capture a fresh Pass #1."
+                        "OFF: capture fresh Generate #1 analysis and context on the next run (then turns ON). "
+                        "ON: reuse the saved values without rerunning Generate #1."
                     ),
                 }),
                 "snapshot_raw_analysis": ("STRING", {
                     "multiline": True, "default": "",
-                    "tooltip": "Persistent raw vision/semantic response from Generate #1. Editable after freeze.",
+                    "tooltip": "Saved Generate #1 analysis; editable after capture." ,
                 }),
                 "snapshot_director_context": ("STRING", {
                     "multiline": True, "default": "",
                     "tooltip": (
-                        "Persistent matching Director Context. Preserved alongside the analysis "
-                        "so Pass #2 re-composes the same shot, even when upstream settings change."
+                        "Saved Director context paired with this analysis. "
+                        "Reused for Pass #2 while the snapshot is materialized."
                     ),
                 }),
             }
@@ -964,10 +1027,13 @@ class H3DirectorShotState:
     ``materialized`` to true. Once materialized is true, the Composer branch is
     not evaluated at all: the node returns only the stored widget values.
 
-    Put this node inside an OBVPM group whose title contains [restore]. Wire its
-    h3_prompt output to the H3 prompt input. This makes the materialized prompt
-    part of the actual generation dependency graph and therefore eligible for an
-    OBVPM Planned Clip snapshot.
+    Legacy/direct mode: this node can feed H3 directly, but OBVPM 0.5.2 may
+    then record the prompt as 'computed'. Native Recipe MVP mode: keep this
+    node OUTSIDE [restore], put H3DirectorRecipePrompt in its OWN [restore]
+    group, and connect that prompt directly to H3. rc25b can automatically
+    prepare an EMPTY purple NEXT RUN Recipe when a fresh Shot Editor completes.
+    OBVPM still captures the literal prompt at queue time: use a separate
+    H3 queue after Director preparation for accurate Recipe provenance.
     """
     CATEGORY = "obvpm/director"
     FUNCTION = "store"
@@ -985,25 +1051,24 @@ class H3DirectorShotState:
                 "materialized": ("BOOLEAN", {
                     "default": False,
                     "tooltip": (
-                        "OFF: capture the connected Director outputs on this run. "
-                        "After a successful capture the UI flips this ON automatically. "
-                        "ON: output the frozen shot_* values without executing the Director/LLM branch."
+                        "OFF: capture Director outputs on the next run (then turns ON). "
+                        "ON: reuse saved shot fields without running upstream LLMs."
                     ),
                 }),
                 "shot_direction": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "tooltip": "Frozen direction for THIS planned/generated shot.",
+                    "tooltip": "Saved shot direction in this editor; editable after capture.",
                 }),
                 "shot_h3_prompt": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "tooltip": "Frozen exact H3 prompt for THIS planned/generated shot.",
+                    "tooltip": "Saved H3 prompt. Fresh purple NEXT RUN Recipes can auto-fill; use Apply to replace existing text.",
                 }),
                 "shot_analysis": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "tooltip": "Frozen Director analysis JSON for THIS planned/generated shot.",
+                    "tooltip": "Saved shot analysis JSON in this editor; editable after capture.",
                 }),
             },
         }
@@ -1060,6 +1125,49 @@ class H3DirectorShotState:
         }
 
 
+class H3DirectorRecipePrompt:
+    """Persistent literal H3 prompt for OBVPM 0.5.2 Recipe/Sync.
+
+    Deliberately has ONE input: an editable, unlinked STRING widget. The
+    OBVPM Recipe resolver can resolve a single literal input feeding output 0
+    at queue time; it cannot recover dynamically linked Shot Editor outputs.
+
+    This node DOES NOT receive live Director values through a wire. Its
+    prompt_text widget may be auto-prepared in a new, empty purple NEXT RUN
+    reservation, explicitly set by the Shot Editor's Apply action, manually
+    edited, or restored from historical OBVPM Recipes / next_draft.
+    """
+    CATEGORY = "obvpm/director"
+    FUNCTION = "emit"
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("prompt",)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt_text": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": (
+                        "Editable H3 prompt for OBVPM Recipes. "
+                        "Put only this node in its own [restore] group and connect 'prompt' directly to H3."
+                    ),
+                }),
+            },
+        }
+
+    def emit(self, prompt_text=""):
+        value = str(prompt_text or "")
+        if not value.strip():
+            raise ValueError(
+                "Director Recipe Prompt is empty. Prepare the new purple "
+                "reservation by running the Director Shot Editor first, "
+                "or enter/apply a prompt before queueing H3."
+            )
+        return (value,)
+
+
 print(f"[H3 Prompt Composer] prompt skill loaded: {SKILL_VERSION}")
 
 
@@ -1071,6 +1179,7 @@ NODE_CLASS_MAPPINGS = {
     "H3DirectorAnalysisCompose": H3DirectorAnalysisCompose,
     "H3DirectorResponseValidator": H3DirectorResponseValidator,
     "H3DirectorShotState": H3DirectorShotState,
+    "H3DirectorRecipePrompt": H3DirectorRecipePrompt,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -1081,4 +1190,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "H3DirectorAnalysisCompose": "H3 Director Analysis → Compose (obvpm)",
     "H3DirectorResponseValidator": "H3 Director Response Validator (obvpm)",
     "H3DirectorShotState": "H3 Director Shot Editor (obvpm)",
+    "H3DirectorRecipePrompt": "H3 Director Recipe Prompt (obvpm)",
 }

@@ -142,7 +142,7 @@ class TestDialogueAuthority(unittest.TestCase):
         ctx = json.loads(result[3])
         self.assertEqual(ctx['authoritative_dialogue']['utterances'], ['Aster: What is that?', 'Bryn: A small planet.'])
         self.assertEqual(ctx['authoritative_dialogue']['authority'], 'user_direction')
-        self.assertEqual(len(result), 7)
+        self.assertEqual(len(result), 6)
 
     def test_empty_analyst_utterances_repaired_from_direction(self):
         _, composer_prompt, normalized, stamped_ctx, _ = self.composed()
