@@ -1,10 +1,16 @@
 [project]
-name = "comfyui-h3-prompt-composer"
+name = "h3-obvpm-director"
 version = "0.6.0"
-description = "Backend-agnostic two-pass OBVPM Director nodes for MiniMax H3 Ref2VA prompts"
+description = "Backend-agnostic two-pass scene directing and H3 Ref2VA prompt composition for ComfyUI, with optional OBVPM timeline integration"
 requires-python = ">=3.10"
+license = { file = "LICENSE" }
 dependencies = []
 
+[project.urls]
+Repository = "https://github.com/Jinx138/obvpm-h3-director"
+Documentation = "https://github.com/Jinx138/obvpm-h3-director#readme"
+"Bug Tracker" = "https://github.com/Jinx138/obvpm-h3-director/issues"
+
 [tool.comfy]
-PublisherId = "local"
-DisplayName = "H3 Prompt Composer"
+PublisherId = "jinx138"
+DisplayName = "H3 OBVPM Director"

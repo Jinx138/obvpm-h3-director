@@ -1,0 +1,24 @@
+# Development-only files. This file only affects Comfy Registry packages,
+# not the public GitHub repository.
+tests/
+.github/
+docs/
+
+# Local development / cache artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+.DS_Store
+.idea/
+.vscode/
+*.bak
+*.tmp
+
+# IMPORTANT: keep web/ and examples/ in the Registry package.
+# web/ contains the frontend extensions required by the Director nodes.
+# examples/ contains the public, portable reference workflows only.
