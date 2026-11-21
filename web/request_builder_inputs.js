@@ -7,7 +7,7 @@ const MAX_PICTURES = 9;
 const INPUT_ORDER = [
     "pin_specs", "audio_in", "video_in",
     ...Array.from({ length: MAX_PICTURES }, (_, i) => `picture_${i + 1}`),
-    "length",
+    "length", "hunting", "hunt_count",
 ];
 const PICTURE_RE = /^picture_([1-9])$/;
 
@@ -126,6 +126,14 @@ function syncPictureInputs(node) {
     if (lengthInput) {
         lengthInput.type = "*";
         lengthInput.localized_name = "length";
+    }
+    // Append-only OBVPM hunt diagnostics: preserve all previously saved
+    // picture/length links by semantic name and repair target_slot indices.
+    addInputIfMissing(node, "hunting", "*");
+    addInputIfMissing(node, "hunt_count", "*");
+    for (const name of ["hunting", "hunt_count"]) {
+        const input = byName(node, name);
+        if (input) { input.type = "*"; input.localized_name = name; }
     }
     reorderSlotsWithoutDroppingLinks(node);
     node.setDirtyCanvas?.(true, true);

@@ -14,9 +14,13 @@ from h3_prompt_composer_rc14 import nodes
 from h3_prompt_composer_rc14.reference_roles import parse_overrides, make_reference_brief, resolve_reference_roles
 from h3_prompt_composer_rc14.continuity import extract_scene_contract
 
+class _BuilderResultsOnly(nodes.H3DirectorRequestBuilder):
+    def build(self, *args, **kwargs):
+        return super().build(*args, **kwargs)["result"]
+
 class TestReferenceRoles(unittest.TestCase):
     def setUp(self):
-        self.builder = nodes.H3DirectorRequestBuilder()
+        self.builder = _BuilderResultsOnly()
         self.raw = {
             "asset_analysis": [
                 {"picture": 1, "primary_role": "character", "label": "Alex", "description": "A person with pink hair"},

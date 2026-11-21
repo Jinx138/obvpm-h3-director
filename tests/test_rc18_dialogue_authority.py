@@ -100,7 +100,7 @@ class TestDialogueAuthority(unittest.TestCase):
             'Bryn smiles and replies: "It is ready now." Then Bryn closes the box.'
         )
         builder = nodes.H3DirectorRequestBuilder()
-        ctx = json.loads(builder.build(direction, 11.0)[3])
+        ctx = json.loads(builder.build(direction, 11.0)["result"][3])
         self.assertEqual(ctx['duration_seconds'], 11.0)
         self.assertEqual(ctx['authoritative_dialogue']['utterances'], [
             'Aster: Is it ready?', 'Bryn: It is ready now.',
@@ -138,7 +138,7 @@ class TestDialogueAuthority(unittest.TestCase):
 
     def test_request_builder_persists_user_authority_without_new_outputs(self):
         b = nodes.H3DirectorRequestBuilder()
-        result = b.build(DIRECTION, 5.2)
+        result = b.build(DIRECTION, 5.2)["result"]
         ctx = json.loads(result[3])
         self.assertEqual(ctx['authoritative_dialogue']['utterances'], ['Aster: What is that?', 'Bryn: A small planet.'])
         self.assertEqual(ctx['authoritative_dialogue']['authority'], 'user_direction')

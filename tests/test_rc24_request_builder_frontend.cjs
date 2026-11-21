@@ -48,7 +48,7 @@ extension.beforeRegisterNodeDef(Node,{name:'H3DirectorRequestBuilder'});
 const node = new Node();
 flush();
 assert.deepStrictEqual(node.inputs.map(s=>s.name), [
-  'pin_specs','audio_in','video_in','picture_1','length']);
+  'pin_specs','audio_in','video_in','picture_1','length','hunting','hunt_count']);
 // The serialized typed pin from older workflows must become a wildcard
 // so it can accept Unbundle's '*' output in the frontend.
 assert.strictEqual(node.inputs.find(s=>s.name==='pin_specs').type, '*');
@@ -65,7 +65,7 @@ graph.links[11]={target_slot:3};
 node.onConnectionsChange(1,3,true,graph.links[11],node.inputs[3]);
 flush();
 assert.deepStrictEqual(node.inputs.map(s=>s.name),[
-  'pin_specs','audio_in','video_in','picture_1','picture_2','length']);
+  'pin_specs','audio_in','video_in','picture_1','picture_2','length','hunting','hunt_count']);
 node.inputs.find(s=>s.name==='picture_2').link=12;
 graph.links[12]={target_slot:4};
 node.onConnectionsChange(1,4,true,graph.links[12],node.inputs[4]);
@@ -166,6 +166,23 @@ assert.deepStrictEqual(Object.fromEntries(saved.inputs.filter(x=>x.link!=null).m
   pin_specs:201,picture_1:202,picture_2:203,picture_3:204,
   length:205
 });
+// Follow-up: hunt diagnostic sockets appended after length must also survive
+// repeated graph reloads without stealing any numbered picture connection.
+let huntedSaved = {
+  ...saved,
+  inputs: saved.inputs.map(x => ({...x})).concat([
+    {name:'hunting',type:'*',link:207},
+    {name:'hunt_count',type:'*',link:208},
+  ]),
+};
+graph.links[207]={target_slot:0}; graph.links[208]={target_slot:0};
+for (let i=0; i<6; i++) huntedSaved=reload(huntedSaved,'hunt-'+i);
+assert.deepStrictEqual(Object.fromEntries(huntedSaved.inputs.filter(x=>x.link!=null).map(x=>[x.name,x.link])),{
+  pin_specs:201,picture_1:202,picture_2:203,picture_3:204,length:205,
+  hunting:207,hunt_count:208,
+});
+console.log('PASS repeated reload: hunt/length/picture connections preserved');
+
 console.log('PASS repeated reload: no target_slot or connection name drift');
 
 // New UI5 graph never creates a duration_seconds socket.
@@ -173,5 +190,7 @@ const fresh = new Node();
 flush();
 assert(!fresh.inputs.some(x => x.name === 'duration_seconds'));
 assert(fresh.inputs.some(x => x.name === 'length'));
+assert(fresh.inputs.some(x => x.name === 'hunting' && x.type === '*'));
+assert(fresh.inputs.some(x => x.name === 'hunt_count' && x.type === '*'));
 assert(fresh.widgets.some(x => x.name === 'duration_seconds' && x.value === 5.2));
 console.log('PASS UI5: duration FLOAT stays widget-only; length is timeline socket');

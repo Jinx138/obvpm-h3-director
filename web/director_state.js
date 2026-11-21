@@ -126,6 +126,68 @@ function addActionButton(node, name, callback) {
     node.addWidget("button", name, null, callback, { serialize: false });
 }
 
+// Keep DIRECT immediately underneath the materialized switch, instead of
+// placing a queue control at the bottom of a long Shot Editor node. The
+// button is UI-only: it never becomes a Python input or a saved widget value.
+function putWidgetAfter(node, name, predecessor) {
+    const widgets = node.widgets;
+    if (!Array.isArray(widgets)) return;
+    const from = widgets.findIndex(w => w.name === name);
+    const before = widgets.findIndex(w => w.name === predecessor);
+    if (from < 0 || before < 0 || from === before + 1) return;
+    const [widget] = widgets.splice(from, 1);
+    const at = widgets.findIndex(w => w.name === predecessor);
+    widgets.splice(at + 1, 0, widget);
+    node.setDirtyCanvas?.(true, true);
+    app.graph?.setDirtyCanvas?.(true, true);
+}
+
+// Native ComfyUI supports explicitly-targeted output-node runs. The Shot
+// Editor is OUTPUT_NODE=True in the backend, so asking for its ID makes
+// ComfyUI evaluate its ancestors without scheduling unrelated H3 outputs.
+// Fail closed: never fall back to app.queuePrompt(0, 1) (whole workflow).
+async function executeDirectorOnly(editor) {
+    if (editor.__directorQueuePending) return false;
+    if (typeof app.queuePrompt !== "function") {
+        recipeNotice("ComfyUI targeted queue API is unavailable. Run the selected Shot Editor node manually.");
+        return false;
+    }
+    const graph = app.graph;
+    if (typeof graph?.getNodeById !== "function" ||
+        graph.getNodeById(editor.id) !== editor) {
+        recipeNotice("DIRECT supports a Shot Editor on the top-level ComfyUI graph only. Nothing was queued.");
+        return false;
+    }
+    // Unfreeze only the Shot Editor. The Analysis Snapshot stays frozen so
+    // DIRECT recomposes Pass #2; if the Snapshot is already unfrozen,
+    // ComfyUI also evaluates Pass #1 through the normal dependency chain.
+    const wasFrozen = editor.widgets?.find(w => w.name === "materialized")?.value === true;
+    editor.__directorQueuePending = true;
+    if (wasFrozen) {
+        setMaterialized(editor, false);
+        graph.change?.();
+    }
+    try {
+        const queued = await app.queuePrompt(0, 1, {
+            queueNodeIds: [String(editor.id)],
+        });
+        if (queued === false) {
+            if (wasFrozen) setMaterialized(editor, true);
+            recipeNotice("ComfyUI did not queue DIRECT. The previous freeze state was restored.");
+            return false;
+        }
+        console.log(`[OBVPM Director] DIRECT queued Shot Editor #${editor.id} only.`);
+        return true;
+    } catch (error) {
+        if (wasFrozen) setMaterialized(editor, true);
+        console.warn("[OBVPM Director] DIRECT queue failed", error);
+        recipeNotice("DIRECT could not be queued; previous freeze state restored. Check the console.");
+        return false;
+    } finally {
+        editor.__directorQueuePending = false;
+    }
+}
+
 function isShotStateNode(node) {
     return node?.comfyClass === "H3DirectorShotState"
         || node?.type === "H3DirectorShotState"
@@ -712,6 +774,8 @@ app.registerExtension({
             nodeType.prototype.onNodeCreated = function() {
                 const result = originalCreated?.apply(this, arguments);
                 applyShotStateWidgetLayout(this);
+                addActionButton(this, "▶ DIRECT", () => executeDirectorOnly(this));
+                putWidgetAfter(this, "▶ DIRECT", "materialized");
                 addActionButton(this, "Reset Director Context (clear saved state)",
                     requestDirectorContextReset);
                 addActionButton(this, "Apply approved prompt to Recipe", () => {

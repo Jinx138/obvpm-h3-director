@@ -1477,7 +1477,6 @@
       }
     },
     {
-      "id": 13,
       "type": "LlamaCppMtmd_PrefillProfile",
       "pos": [
         -610,
@@ -1488,7 +1487,6 @@
         205
       ],
       "flags": {},
-      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -1554,7 +1552,7 @@
       },
       "widgets_values": [
         "Custom",
-        512,
+        1024,
         0,
         0,
         0
@@ -1565,7 +1563,9 @@
         "n_ubatch": 0,
         "image_min_tokens": 0,
         "image_max_tokens": 0
-      }
+      },
+      "id": 13,
+      "order": 12
     }
   ],
   "links": [

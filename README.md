@@ -6,7 +6,7 @@ OBVPM Director adds a practical directing layer to **MiniMax H3 Ref2VA in ComfyU
 
 The workflow is built for **hands-on directing**: inspect the visual analysis, refine the shot, edit the resulting prompt, and freeze an approved version for consistent video generations and Seed Hunt.
 
-![The OBVPM Director workspace: reference-aware analysis, prompt composition, validation, and an editable shot](docs/images/obvpm-director-workflow-overview.png)
+![OBVPM Director v0.6.2 workspace: Request Builder with prompt history, two-pass llama.cpp analysis and composition, frozen Analysis Snapshot, and Shot Editor with DIRECT execution](docs/images/obvpm-director-workflow-overview.png)
 
 **[Quick start](#quick-start)** · **[Open the example workflow](examples/H3-Director-Recipe-MVP.json)** · **[Release notes](RELEASE_NOTES.md)**
 
@@ -69,7 +69,7 @@ Open the result in **H3 Director Shot Editor (obvpm)**, adjust anything you wish
 
 ### 1. Install the Director
 
-**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.1**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.1 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
+**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.2**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.2 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
 
 **Manual GitHub alternative:** Clone into ComfyUI's `custom_nodes` directory, keeping the folder name `h3-prompt-composer`:
 
@@ -93,9 +93,9 @@ Its Generate nodes use the external **`ollama-image-list` llama.cpp** integratio
 
 Choose your locally available models and hardware profiles. The two-pass interface also supports other compatible ComfyUI inference backends.
 
-**llama.cpp setup (current plugin, external dependency):** Install **ComfyUI-llama-multimodal** separately through ComfyUI Manager (or use your own compatible inference nodes). Recent versions of `ComfyUI-llama-multimodal` require a `[llama.cpp] Prefill Profile` connection. Both Generate nodes in the updated examples share one Prefill Profile set to `Custom` (`n_batch=512`, `n_ubatch=0`, `image_min_tokens=0`, `image_max_tokens=0`). The zero values retain the backend's default behavior; tune the batch settings only if your model needs it.
+The included llama.cpp examples share a **`[llama.cpp] Prefill Profile`** with **Custom / `n_batch=1024` / `n_ubatch=0` / `image_min_tokens=0` / `image_max_tokens=0`**. `n_batch=1024` may improve prompt-processing throughput, but it is **not a 32 GB VRAM requirement** or a universal performance guarantee. `n_ubatch=0` and the image token zeroes mean no explicit overrides. If your model or GPU has memory problems, try **`n_batch=512`**, a shorter context, or a smaller model. The profile affects llama.cpp's prompt processing, not the Director's image size limit or the maximum generated output tokens.
 
-Put your GGUF models in `ComfyUI/models/LLM/` along with the matching vision projector (`mmproj`) when required. Restart ComfyUI so the file selectors refresh, then choose your files from **`model_path`** and **`mmproj_path`** in each Generate node (use `[none]` for text-only generation). The separate **Model Profile** nodes set sampling/model behavior, not filesystem paths. The examples also use the current `[llama.cpp] Hardware Runtime Profile` node; llama.cpp moved the batch settings from that node into **Prefill Profile**. Model paths in the example are deliberately unselected because they depend on your installation.
+Install the external llama.cpp nodepack separately and select your own **GGUF** and matching vision projector **`mmproj`** in Generate #1; use `[none]` for Generate #2's projector. Place models under `ComfyUI/models/LLM/` and restart ComfyUI after adding them. The example does not ship model files or OBVPM's Pro workflow.
 
 ### 3. Add references and describe the shot
 
@@ -111,6 +111,10 @@ Picture 3: living room (location)
 
 The accepted mappings appear in the reference status. Location references provide spatial and visual grounding while your Direction controls framing.
 
+**Vision input scaling:** The Request Builder limits each image sent to Generate #1 to **1,000,000 pixels or less**, preserving its aspect ratio and never upscaling. This includes image-based continuity frames. It does not modify the original Picture inputs or the references supplied to H3 generation, and empty Picture sockets need no placeholder/scaler nodes. Scaling diagnostics are available under `vision_input_scaling` in `continuity_info`.
+
+**Workflow-local prompt history:** Use the Request Builder's **Save / Previous / Next / Delete** controls to revisit saved `direction` + `reference_roles` combinations. Successful executions can automatically record combinations; state is persisted inside the saved workflow's Request Builder properties (`director_request_history_v1`), not in a shared global file. Save the ComfyUI workflow to keep those entries across reloads. The history does not itself restore generated prompts or change the Recipe.
+
 <img src="docs/images/obvpm-director-reference-pictures.png" alt="Character and location reference images connected through OBVPM Picture inputs" width="560">
 
 In standalone mode, set `duration_seconds` for the intended shot length. With OBVPM Timeline 0.5.2, connect its **Unbundle `length`** (24-fps frame count) to the Request Builder's optional `length` input. Leave the Timeline's own `duration_seconds` widget available to Regenerate.
@@ -122,6 +126,7 @@ Execute the **Shot Editor output**, review the visual analysis and prompt, and c
 - **Re-analyze:** refresh visual/semantic analysis and compose a new prompt.
 - **Recompose (keep analysis):** generate another prompt from the same saved analysis, for example with different Generate #2 settings.
 - **Materialized Shot Editor:** reuse the approved prompt for seed comparisons and repeated generation.
+- **▶ DIRECT (Shot Editor):** targeted execution of the current Shot Editor and its required dependencies only. If the editor was materialized, the button releases its freeze before the targeted run; a separately materialized Analysis Snapshot stays frozen. This is not a full workflow Run and does not deliberately launch H3 generation or Seed Hunt. The integrated frontend queue guard restores the partial-execution target if an extension drops it and silently suppresses duplicate submissions during the targeted request.
 - **Reset Director Context:** clear stored Director analysis and shot text when starting a different project from a copied workflow. The Recipe Prompt maintains its own saved text.
 
 ## OBVPM Recipe integration
@@ -146,7 +151,9 @@ Keep **only the Recipe Prompt node** inside a group whose title contains `[resto
 3. **Review the Recipe.** Edit the literal text directly, or select **Apply approved prompt to Recipe** in Shot Editor to transfer a chosen version. Automatic transfer operates on an empty Recipe field; manual Apply lets you deliberately replace its contents.
 4. **Queue H3 generation.** Once the Recipe contains the desired text, run your H3/OBVPM generation workflow. OBVPM records the literal prompt with the queued take.
 
-The **two-stage queue sequence** gives you an opportunity to approve the direction before video generation. For Seed Hunt, materialize a single prompt and keep its Recipe text fixed while trying different seeds.
+The **two-stage queue sequence** gives you an opportunity to approve the direction before video generation. For Seed Hunt, materialize a single prompt and keep its Recipe text fixed while trying different seeds. The optional Request Builder `hunting` and `hunt_count` inputs accept OBVPM Unbundle diagnostics; **they do not control or disable OBVPM Hunt**. A regular ComfyUI **Full Run** follows OBVPM's own generation/Seed Hunt rules.
+
+**Avoid bypassing the freeze:** If a separate output/diagnostic node (e.g. Show Text) consumes Generate #1 or Generate #2 directly, executing that branch can re-run the LLM even when Analysis Snapshot and Shot Editor are both materialized. Disconnect such diagnostics when performing a full H3/Seed Hunt run, or feed them from the saved snapshot instead.
 
 Selecting historical clips restores their saved Recipe prompts through OBVPM while preserving the independent Director workspace for new creative work.
 
@@ -165,7 +172,7 @@ Selecting historical clips restores their saved Recipe prompts through OBVPM whi
 ## Workflows and compatibility
 
 - **ComfyUI / Python:** Python 3.10+ with suitable external vision and text Generate nodes.
-- **Example backend:** `ollama-image-list` llama.cpp with local model and hardware configuration; other compatible backends can be connected.
+- **Example backend:** `ComfyUI-llama-multimodal` llama.cpp with local model and hardware configuration; other compatible backends can be connected.
 - **OBVPM integration:** Recipe synchronization and timeline continuity were developed with **OBVPM Timeline 0.5.2**.
 - **Example workflows:** [H3 Director — Recipe MVP](examples/H3-Director-Recipe-MVP.json) is the recommended starting point. The older [Analysis / Freeze / Recompose example](examples/H3-Director-Analysis-Freeze-Recompose.json) is retained as a reference for the original workflow layout.
 

@@ -58,7 +58,7 @@ class TestDurationPassthrough(unittest.TestCase):
         self.assertNotIn('duration_seconds', b.RETURN_NAMES)
         self.assertEqual(len(b.RETURN_NAMES), len(b.RETURN_TYPES))
         self.assertNotIn('H3DirectorDuration', nodes.NODE_CLASS_MAPPINGS)
-        result = b().build('Aster and Bryn move on the carpet.', 5.2)
+        result = b().build('Aster and Bryn move on the carpet.', 5.2)['result']
         self.assertEqual(len(result), 6)
         ctx = json.loads(result[3])
         self.assertEqual(ctx['duration_seconds'], 5.2)

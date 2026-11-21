@@ -193,6 +193,65 @@ def _pil_to_comfy_tensor(image):
     return torch.from_numpy(arr)[None, ...]
 
 
+# Vision handoff ONLY: keep source IMAGE tensors untouched for OBVPM/H3.
+# All numbered references and optional continuity boundary frames use this
+# conservative cap on the list passed exclusively to external Generate #1.
+VISION_MAX_PIXELS = 1_000_000
+
+
+def _limit_vision_image(image, max_pixels=VISION_MAX_PIXELS):
+    """Downscale a Comfy IMAGE [B,H,W,C] without ever upscaling or mutating it.
+
+    Return (image, info). The caller's original IMAGE remains byte-identical.
+    Non-IMAGE test doubles are passed through unchanged for compatibility.
+    """
+    if not hasattr(image, "shape") or len(image.shape) != 4:
+        return image, None
+    batch, height, width, channels = map(int, image.shape)
+    if height <= 0 or width <= 0 or batch <= 0 or channels not in (1, 3, 4):
+        return image, None
+    if height * width <= max_pixels:
+        return image, {"from": [width, height], "to": [width, height], "scaled": False}
+    import math
+    scale = math.sqrt(max_pixels / (height * width))
+    target_width = max(1, int(width * scale))
+    target_height = max(1, int(height * scale))
+    # Floor rounding yields <= cap for all valid IMAGE dimensions.
+    import torch.nn.functional as F
+    resized = F.interpolate(
+        image.permute(0, 3, 1, 2).contiguous(),
+        size=(target_height, target_width), mode="area",
+    ).permute(0, 2, 3, 1).contiguous()
+    return resized, {"from": [width, height], "to": [target_width, target_height], "scaled": True}
+
+
+def _normalize_hunting(value):
+    """Interpret OBVPM wildcard Unbundle bool without treating 'False' as true."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)) and value in (0, 1):
+        return bool(value)
+    if isinstance(value, str):
+        word = value.strip().casefold()
+        if word in {"true", "1", "on", "yes"}:
+            return True
+        if word in {"false", "0", "off", "no"}:
+            return False
+    return None
+
+
+def _normalize_hunt_count(value):
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        count = int(value)
+    except (ValueError, TypeError, OverflowError):
+        return None
+    return count if count >= 0 and str(value).strip() in {str(count), f"{count}.0"} else None
+
+
 def _context_load(raw):
     if isinstance(raw, dict):
         return raw
@@ -277,6 +336,10 @@ class H3DirectorRequestBuilder:
                         "Overrides duration_seconds; leave the Timeline duration_seconds input unlinked."
                     ),
                 }),
+                # Advisory runtime signals; the native-Run confirmation is a
+                # frontend pre-queue check, independent of these late values.
+                "hunting": ("*", {"tooltip": "Optional OBVPM Timeline Unbundle 'hunting' status for diagnostics (not a generator gate)."}),
+                "hunt_count": ("*", {"tooltip": "Optional OBVPM Timeline Unbundle 'hunt_count' for diagnostics."}),
             },
         }
 
@@ -375,7 +438,8 @@ class H3DirectorRequestBuilder:
               picture_1=None, picture_2=None, picture_3=None, picture_4=None,
               reference_roles="", audio_in=None, video_in=None,
               picture_5=None, picture_6=None, picture_7=None, picture_8=None,
-              picture_9=None, total_frames=None, length=None):
+              picture_9=None, total_frames=None, length=None,
+              hunting=None, hunt_count=None):
         # Numbered images stay one-based, matching H3 <Picture N> grammar.
         # Noncontiguous older workflows remain valid: never renumber pictures.
         indexed = [
@@ -389,6 +453,8 @@ class H3DirectorRequestBuilder:
 
         classified = classify_pin_specs(pin_specs)
         operation = str(classified.get("operation") or "new")
+        hunt_active = _normalize_hunting(hunting)
+        hunt_runs = _normalize_hunt_count(hunt_count)
         continuity = {
             "prompt_policy_version": SKILL_VERSION,
             "operation": operation,
@@ -398,6 +464,15 @@ class H3DirectorRequestBuilder:
             "target_endpoint": None,
             "warnings": list(classified.get("warnings") or []),
         }
+        if hunt_active is not None:
+            continuity["hunting"] = hunt_active
+        if hunt_runs is not None:
+            continuity["hunt_count"] = hunt_runs
+        if hunt_active is True:
+            continuity["warnings"].append(
+                "OBVPM Seed Hunt is ACTIVE: use DIRECT for prompt-only execution. "
+                "A native full Run can start H3 hunting jobs; the browser pre-queue guard asks for confirmation."
+            )
 
         start_summary, start_state = self._load_endpoint(
             classified.get("start_spec"), "start", llm_images, len(connected)
@@ -410,6 +485,25 @@ class H3DirectorRequestBuilder:
         for endpoint in (start_summary, target_summary):
             if endpoint:
                 continuity["warnings"].extend(endpoint.get("warnings") or [])
+
+        # Scale only the outgoing vision list; no transformations are applied to
+        # the user's original numbered IMAGE nodes or H3 generation inputs.
+        vision_sizing = []
+        reduced_images = []
+        for index, image in enumerate(llm_images):
+            reduced, dimensions = _limit_vision_image(image)
+            reduced_images.append(reduced)
+            if dimensions is not None:
+                label = (f"picture_{picture_slots[index]}"
+                         if index < len(picture_slots)
+                         else ("start_boundary" if start_summary and start_summary.get("frame_found")
+                               and index == len(picture_slots) else "target_boundary"))
+                vision_sizing.append({"source": label, **dimensions})
+        llm_images = reduced_images
+        continuity["vision_input_scaling"] = {
+            "max_pixels_per_image": VISION_MAX_PIXELS,
+            "images": vision_sizing,
+        }
 
         # Internal continuity state retains the materialized endpoint data for provenance.
         # prompt_skill sanitizes the LLM-facing view so temporal prompt/analysis prose
@@ -425,7 +519,13 @@ class H3DirectorRequestBuilder:
             continuity_note_parts.append(target_summary.get("director_note") or "")
         continuity_note = "\n".join(x for x in continuity_note_parts if x)
 
-        direction = str(direction or "").strip()
+        # Browser-side history stores exactly the executed text pair inside
+        # the owning Request Builder's workflow JSON (not in browser storage).
+        history_pair = {
+            "direction": str(direction or ""),
+            "reference_roles": str(reference_roles or ""),
+        }
+        direction = history_pair["direction"].strip()
         # `total_frames` is a deprecated API alias used by the UI4 testbuild.
         # UI5 displays/serializes the OBVPM field name `length` directly.
         supplied_length = length if length is not None else total_frames
@@ -482,14 +582,21 @@ class H3DirectorRequestBuilder:
             context["duration_frames"] = duration_frames
         context_json = json.dumps(context, ensure_ascii=False, indent=2)
         continuity_info = json.dumps(continuity, ensure_ascii=False, indent=2)
-        return (
-            ANALYST_SYSTEM,
-            analysis_prompt,
-            llm_images,
-            context_json,
-            direction,
-            continuity_info,
-        )
+        return {
+            "ui": {
+                "director_request_history": [
+                    json.dumps(history_pair, ensure_ascii=False)
+                ],
+            },
+            "result": (
+                ANALYST_SYSTEM,
+                analysis_prompt,
+                llm_images,
+                context_json,
+                direction,
+                continuity_info,
+            ),
+        }
 
 
 class H3DirectorVRAMHandoff:

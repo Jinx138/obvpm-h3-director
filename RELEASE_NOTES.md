@@ -1,3 +1,31 @@
+# OBVPM Director v0.6.2
+
+**21 November 2026 · Shot iteration, vision scaling and targeted queue safety**
+
+This update promotes the live-tested `v0.6.2.dev3` code to the public release, retaining the Director's independent two-pass architecture and OBVPM Recipe integration.
+
+## Highlights
+
+- **▶ DIRECT:** One-click targeted execution from **H3 Director Shot Editor (obvpm)**, directly below `materialized`. It releases the Shot Editor's freeze when necessary, preserves a separately frozen Analysis Snapshot, and asks ComfyUI to execute only that editor's dependency branch. A frontend submission guard preserves `partial_execution_targets` through the standard ComfyUI queue path, limits the targeted submission to one job, and quietly drops synchronous duplicate submissions instead of displaying an error modal. **Native Full Run and OBVPM Seed Hunt remain unchanged.**
+- **Workflow-local Direction / reference-role history:** Save, Delete, Previous, Next, and automatic capture on execution. The history is stored in the Request Builder's serialized workflow properties, so **save the workflow** to persist changes. Existing dev2/dev3 history entries use the same key and remain compatible.
+- **Automatic 1 MP vision scaling:** The Request Builder downscales individual reference images for the first, vision-capable LLM pass only. Aspect ratios are retained; images are never upscaled; empty Picture sockets are skipped. Original references for H3 generation are untouched. Includes START/TARGET continuity frames.
+- **Optional `hunting` / `hunt_count` inputs:** OBVPM Unbundle status/diagnostics available without changing actual Hunt settings.
+- **Dynamic Picture socket stability:** Retains the `length` and sparse Picture reload fix, tested with optional hunt diagnostics.
+- **llama.cpp examples:** Both portable example workflows now ship one shared Prefill Profile, `Custom`, with `n_batch=1024`, `n_ubatch=0`, `image_min_tokens=0`, `image_max_tokens=0`. This is a performance-oriented example configuration **not tied to 32 GB VRAM**. Use `n_batch=512` when resource constraints or hardware favor it. GGUF and `mmproj` remain user-selected.
+
+## Usage and caveats
+
+1. Install/update **H3 OBVPM Director** (`h3-obvpm-director`) from ComfyUI Manager after the manual Registry publication, or clone this repository once into `ComfyUI/custom_nodes/` as `h3-prompt-composer`. **Remove duplicate Director installations** before restarting ComfyUI.
+2. Install a compatible VLM + text Generate backend separately, open [the Recipe example](examples/H3-Director-Recipe-MVP.json), and select your local models.
+3. Analyze and materialize an approved shot with ▶ DIRECT; keep the Analysis Snapshot frozen when varying only the composer. For OBVPM Seed Hunt, use the materialized Recipe prompt as the video-generation source.
+4. A diagnostic/output node wired **directly** to a Generate node can force that LLM to execute despite the saved Snapshot/Editor state. Disconnect direct LLM diagnostics before a full Hunt run.
+
+The queue safety feature operates in the **standard browser ComfyUI queue submission path**. It does not intercept arbitrary backend-initiated jobs or independently queued API requests. It does not disable OBVPM Hunt. The Director still intentionally rejects invalid/malformed LLM JSON instead of silently modifying its meaning; tune `n_ctx`, output limits, and model settings for demanding analysis prompts.
+
+**Verification:** 130 Python tests and nine frontend regression scripts passed for the dev3 code baseline during local development; targeted queue isolation and duplicate suppression were additionally confirmed in a live ComfyUI / OBVPM workflow. Public examples remain Director-only and contain no Patreon-exclusive OBVPM Pro workflow.
+
+---
+
 # OBVPM Director v0.6.1
 
 **Version 0.6.1 · 21 November 2026 · ComfyUI llama.cpp compatibility update**

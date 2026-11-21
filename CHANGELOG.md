@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.6.2 — 2026-11-21 (shot iteration and targeted queue isolation)
+
+- Release the tested dev3 code baseline with automatic 1 MP image downscaling on Generate #1 only, including optional continuity images, while preserving original Picture tensors.
+- Integrate workflow-local Direction + Reference Roles history with Save/Delete/Previous/Next and persisted auto-capture.
+- Add ▶ DIRECT on H3 Director Shot Editor, automatically releasing that editor's materialization while preserving separately frozen analysis.
+- Restore selected-node-only execution when other frontend extensions strip partial execution metadata; keep targeted batch size at one and suppress duplicate synchronous queue calls quietly (console info only). Do not modify native Full Run or OBVPM Hunt jobs.
+- Add optional `hunting` / `hunt_count` diagnostic inputs after `length`, with sparse Picture input/link stability on reload.
+- In both portable example workflows, use one shared llama.cpp Prefill Profile with `n_batch=1024` (previously 512) and no explicit microbatch/image-token overrides. Hardware- and model-dependent; use 512 if needed.
+- Document the direct-diagnostic bypass of materialization, model-independent queue limits, and the OBVPM attribution to [@chanon](https://github.com/chanon).
+
+## v0.6.2.dev2 — 2026-11-21 (local queue-safety fix, not released)
+
+- **Remove the incorrect global Full-Run/Timeline confirmation dialog**. Full workflow Run is no longer intercepted, including when a Director Shot Editor is materialized.
+- When the native ComfyUI **Execute Selected Node** or the **▶ DIRECT** button targets a single Shot Editor, force exactly that editor as the partial execution target and limit the submission batch to one. Do not request unrelated H3/Seed Hunt output nodes.
+- At the API and actual `/prompt` request levels, reinstate `partial_execution_targets` if another frontend extension drops the selection. Reject extra reentrant app/API `/prompt` queue requests during that Director submission.
+- No changes to OBVPM's Seed Hunt toggle, generation code, Director backend, history, Picture sockets/scaling, prompt skills, or public GitHub/Registry release. This is a local, browser-side safeguard; live acceptance is still needed and direct backend/API submissions bypassing ComfyUI's queue hooks are outside its scope.
+
+## v0.6.2.dev1 — 2026-11-21 (local test, not released)
+
+- Limit outgoing Generate #1 reference images to 1 MP each inside Request Builder (no upscaling; original IMAGE unchanged).
+- Merge dev2 workflow-local history of Direction and Reference Roles, with auto-capture on execution and Save/Delete/Prev/Next.
+- Retain the live-tested DIRECT targeted execution button under Shot Editor materialization.
+- Append optional OBVPM Unbundle `hunting` and `hunt_count` diagnostics after `length`; preserve picture-link mappings on reload.
+- Add conservative native full-Run confirmation when Director + OBVPM Timeline share the graph; targeted runs unaffected. This UI preflight does not read runtime Hunt state before execution or intercept server-side API calls.
+
+
 ## v0.6.1 — 2026-11-21 (llama.cpp example compatibility)
 
 - Updated the two public example workflows for current `ComfyUI-llama-multimodal`: a required shared `[llama.cpp] Prefill Profile` for Generate #1/#2 and the renamed `[llama.cpp] Hardware Runtime Profile` node.

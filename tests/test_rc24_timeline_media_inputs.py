@@ -14,6 +14,14 @@ spec.loader.exec_module(mod)
 from director_rc24_media_test.continuity import classify_pin_specs
 from director_rc24_media_test.nodes import H3DirectorRequestBuilder
 
+# The Builder now emits ComfyUI history UI metadata alongside its original
+# six data outputs. These legacy tests exercise the original data contract.
+class _BuilderResultsOnly(H3DirectorRequestBuilder):
+    def build(self, *args, **kwargs):
+        return super().build(*args, **kwargs)["result"]
+
+H3DirectorRequestBuilder = _BuilderResultsOnly
+
 A1 = {"place": "track", "kind": "pinned_audio", "track": "A1", "items": []}
 BEFORE = {"place": "before", "source_start": 0, "source_frames": 124, "source_path": "unused.mp4"}
 AFTER = {"place": "after", "source_start": 0, "source_frames": 124, "source_path": "unused.mp4"}
@@ -70,8 +78,10 @@ class TestReservedInputsAndPictureNumbering(unittest.TestCase):
                          list(H3DirectorRequestBuilder.RETURN_NAMES))
         self.assertEqual([w for w in builder['widgets_values'][:3]], ['', '', 5.2])
         self.assertIn('Director [restore]', [g['title'] for g in example['groups']])
-        self.assertEqual(len(example['nodes']), 11)
-        self.assertEqual(len(example['links']), 21)
+        # v0.6.1 introduces the required shared Prefill Profile for both Generate nodes.
+        self.assertEqual(len(example['nodes']), 12)
+        self.assertEqual(len(example['links']), 23)
+        self.assertEqual(len([n for n in example['nodes'] if n['type'] == 'LlamaCppMtmd_PrefillProfile']), 1)
         names = [i['name'] for i in builder['inputs']]
         self.assertIn('length', names)
         self.assertNotIn('total_frames', names)
