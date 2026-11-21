@@ -85,6 +85,10 @@ Its Generate nodes use the external **`ollama-image-list` llama.cpp** integratio
 
 Choose your locally available models and hardware profiles. The two-pass interface also supports other compatible ComfyUI inference backends.
 
+**llama.cpp setup (current plugin):** Recent versions of `ComfyUI-llama-multimodal` require a `[llama.cpp] Prefill Profile` connection. Both Generate nodes in the updated examples share one Prefill Profile set to `Custom` (`n_batch=512`, `n_ubatch=0`, `image_min_tokens=0`, `image_max_tokens=0`). The zero values retain the backend's default behavior; tune the batch settings only if your model needs it.
+
+Put your GGUF models in `ComfyUI/models/LLM/` along with the matching vision projector (`mmproj`) when required. Restart ComfyUI so the file selectors refresh, then choose your files from **`model_path`** and **`mmproj_path`** in each Generate node (use `[none]` for text-only generation). The separate **Model Profile** nodes set sampling/model behavior, not filesystem paths. The examples also use the current `[llama.cpp] Hardware Runtime Profile` node; llama.cpp moved the batch settings from that node into **Prefill Profile**. Model paths in the example are deliberately unselected because they depend on your installation.
+
 ### 3. Add references and describe the shot
 
 Connect your characters, environments, and objects to the Request Builder's **Picture** inputs. The current UI supports up to **nine numbered Picture inputs**, adding slots as needed. Write the action and desired camera behavior in **Direction**.

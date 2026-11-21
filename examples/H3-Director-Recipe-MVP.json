@@ -1,8 +1,8 @@
 {
   "id": "82ba5078-0e8d-41c7-afc6-08273f16349a",
   "revision": 0,
-  "last_node_id": 12,
-  "last_link_id": 21,
+  "last_node_id": 13,
+  "last_link_id": 23,
   "nodes": [
     {
       "id": 1,
@@ -164,6 +164,12 @@
           "shape": 7,
           "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
           "link": 2
+        },
+        {
+          "localized_name": "prefill_profile",
+          "name": "prefill_profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+          "link": 22
         },
         {
           "localized_name": "reasoning",
@@ -596,7 +602,7 @@
     },
     {
       "id": 5,
-      "type": "OllamaImageList_LlamaCppHardwareRuntimeProfile",
+      "type": "LlamaCppMtmd_HardwareRuntimeProfile",
       "pos": [
         -140,
         7270
@@ -612,38 +618,29 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "profile",
-          "name": "profile",
-          "type": "COMBO",
-          "widget": {
-            "name": "profile"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "n_batch",
-          "name": "n_batch",
-          "type": "INT",
-          "widget": {
-            "name": "n_batch"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "n_ubatch",
-          "name": "n_ubatch",
-          "type": "INT",
-          "widget": {
-            "name": "n_ubatch"
-          },
-          "link": null
-        },
-        {
           "localized_name": "gpu_layers",
           "name": "gpu_layers",
           "type": "COMBO",
           "widget": {
             "name": "gpu_layers"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "type_k",
+          "name": "type_k",
+          "type": "COMBO",
+          "widget": {
+            "name": "type_k"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "type_v",
+          "name": "type_v",
+          "type": "COMBO",
+          "widget": {
+            "name": "type_v"
           },
           "link": null
         },
@@ -697,24 +694,21 @@
       ],
       "properties": {
         "cnr_id": "ollama-image-list",
-        "ver": "53dad7370f71541843c0367459078118b23c1b14",
-        "Node name for S&R": "OllamaImageList_LlamaCppHardwareRuntimeProfile"
+        "Node name for S&R": "LlamaCppMtmd_HardwareRuntimeProfile"
       },
       "widgets_values": [
-        "GPU Full Offload",
-        512,
-        0,
         "all",
+        "FP16",
+        "FP16",
         0,
         0,
         "auto",
         true
       ],
       "widgets_values_named": {
-        "profile": "GPU Full Offload",
-        "n_batch": 512,
-        "n_ubatch": 0,
         "gpu_layers": "all",
+        "type_k": "FP16",
+        "type_v": "FP16",
         "main_gpu": 0,
         "n_threads": 0,
         "flash_attention": "auto",
@@ -751,6 +745,12 @@
           "shape": 7,
           "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
           "link": 9
+        },
+        {
+          "localized_name": "prefill_profile",
+          "name": "prefill_profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+          "link": 23
         },
         {
           "localized_name": "reasoning",
@@ -1475,6 +1475,97 @@
       "widgets_values_named": {
         "prompt_text": ""
       }
+    },
+    {
+      "id": 13,
+      "type": "LlamaCppMtmd_PrefillProfile",
+      "pos": [
+        -610,
+        7920
+      ],
+      "size": [
+        310,
+        205
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "profile",
+          "name": "profile",
+          "type": "COMBO",
+          "widget": {
+            "name": "profile"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "n_batch",
+          "name": "n_batch",
+          "type": "INT",
+          "widget": {
+            "name": "n_batch"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "n_ubatch",
+          "name": "n_ubatch",
+          "type": "INT",
+          "widget": {
+            "name": "n_ubatch"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "image_min_tokens",
+          "name": "image_min_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "image_min_tokens"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "image_max_tokens",
+          "name": "image_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "image_max_tokens"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "prefill_profile",
+          "name": "prefill_profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+          "links": [
+            22,
+            23
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "ollama-image-list",
+        "Node name for S&R": "LlamaCppMtmd_PrefillProfile"
+      },
+      "widgets_values": [
+        "Custom",
+        512,
+        0,
+        0,
+        0
+      ],
+      "widgets_values_named": {
+        "profile": "Custom",
+        "n_batch": 512,
+        "n_ubatch": 0,
+        "image_min_tokens": 0,
+        "image_max_tokens": 0
+      }
     }
   ],
   "links": [
@@ -1499,7 +1590,7 @@
       1,
       2,
       2,
-      4,
+      5,
       "IMAGE"
     ],
     [
@@ -1507,7 +1598,7 @@
       10,
       0,
       2,
-      9,
+      10,
       "STRING"
     ],
     [
@@ -1515,7 +1606,7 @@
       10,
       1,
       2,
-      10,
+      11,
       "STRING"
     ],
     [
@@ -1555,7 +1646,7 @@
       9,
       0,
       6,
-      9,
+      10,
       "STRING"
     ],
     [
@@ -1563,7 +1654,7 @@
       9,
       1,
       6,
-      10,
+      11,
       "STRING"
     ],
     [
@@ -1645,6 +1736,22 @@
       11,
       2,
       "STRING"
+    ],
+    [
+      22,
+      13,
+      0,
+      2,
+      2,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE"
+    ],
+    [
+      23,
+      13,
+      0,
+      6,
+      2,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE"
     ]
   ],
   "groups": [
@@ -1655,7 +1762,7 @@
         -1010,
         6930,
         1960,
-        950
+        1250
       ],
       "color": "#3f789e",
       "flags": {}
