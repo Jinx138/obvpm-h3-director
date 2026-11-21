@@ -1,3 +1,24 @@
+# OBVPM Director v0.6.3
+
+**21 November 2026 · Portable workflow and Request Builder compatibility**
+
+This small follow-up release promotes the live-tested `v0.6.3.dev1` build. It focuses on easier integration into vanilla H3 Ref2VA workflows and stable input wiring. No new Director generation logic, prompt-policy changes, or changes to native OBVPM Hunt are included.
+
+## Changes
+
+- **Connectable `duration_seconds`:** The Request Builder offers a FLOAT input and its editable widget. Connect a duration from a vanilla H3 workflow or leave it unconnected and type seconds directly. If an OBVPM Timeline `length` frame count is connected, `length` remains authoritative at **24 fps**.
+- **Stable fixed sockets:** `pin_specs`, `audio_in`, `video_in`, `length`, `duration_seconds`, `hunting`, and `hunt_count` stay before the dynamic `picture_1`–`picture_9` inputs. Dynamic image connections no longer shift previously connected timeline inputs. Frontend link reconciliation handles older layouts and newer LiteGraph LinkMap representations, including subgraphs.
+- **Tooltips:** Clarify timing precedence, the distinction between Hunt diagnostics and Hunt control, and the conservative 1 MP Generate #1 vision-image cap.
+- **Portable example:** The recommended file is now **[`H3-Director-Portable-Workspace.json`](examples/H3-Director-Portable-Workspace.json)** (no MVP/FRESH suffix), with a coherent Director layout, seed 42 on both Generate nodes, both materialization states initially off, and a shared llama.cpp Prefill Profile (`n_batch=1024`, `n_ubatch=0`). Set the models and projector to match your local setup. If memory is limited, try `n_batch=512`.
+
+## Compatibility and scope
+
+The Director is still backend-agnostic and supports use as a **standalone directing layer**: connect its approved H3 prompt to a vanilla H3 Ref2VA prompt input. With OBVPM Timeline, retain the independent Recipe Prompt group for timeline/Recipe restore. No OBVPM Pro/Patreon workflow is bundled.
+
+**Validation:** 134 Python tests and 10 frontend regression scripts passed for the local test build, followed by successful live use with four picture references and correctly retained timeline links. DIRECT, workflow-local prompt history, 1 MP vision scaling, materialization, and the v0.6.2 queue-isolation safeguard remain unchanged. This is intended as a stability update, not the start of a new feature series.
+
+---
+
 # OBVPM Director v0.6.2
 
 **21 November 2026 · Shot iteration, vision scaling and targeted queue safety**
@@ -16,7 +37,7 @@ This update promotes the live-tested `v0.6.2.dev3` code to the public release, r
 ## Usage and caveats
 
 1. Install/update **H3 OBVPM Director** (`h3-obvpm-director`) from ComfyUI Manager after the manual Registry publication, or clone this repository once into `ComfyUI/custom_nodes/` as `h3-prompt-composer`. **Remove duplicate Director installations** before restarting ComfyUI.
-2. Install a compatible VLM + text Generate backend separately, open [the Recipe example](examples/H3-Director-Recipe-MVP.json), and select your local models.
+2. Install a compatible VLM + text Generate backend separately, open [the Recipe example](examples/H3-Director-Portable-Workspace.json), and select your local models.
 3. Analyze and materialize an approved shot with ▶ DIRECT; keep the Analysis Snapshot frozen when varying only the composer. For OBVPM Seed Hunt, use the materialized Recipe prompt as the video-generation source.
 4. A diagnostic/output node wired **directly** to a Generate node can force that LLM to execute despite the saved Snapshot/Editor state. Disconnect direct LLM diagnostics before a full Hunt run.
 
@@ -42,7 +63,7 @@ This maintenance release makes the two bundled example workflows compatible with
 
 ## Install / update
 
-Install or update **H3 OBVPM Director** (`h3-obvpm-director`) to **0.6.1** using ComfyUI Manager after the Registry publication, restart ComfyUI, and open the current [Recipe example](examples/H3-Director-Recipe-MVP.json). The external llama.cpp nodepack is a separate installation and must also be available. Select GGUF model and matching `mmproj` in the Generate nodes. See [README](README.md).
+Install or update **H3 OBVPM Director** (`h3-obvpm-director`) to **0.6.1** using ComfyUI Manager after the Registry publication, restart ComfyUI, and open the current [Recipe example](examples/H3-Director-Portable-Workspace.json). The external llama.cpp nodepack is a separate installation and must also be available. Select GGUF model and matching `mmproj` in the Generate nodes. See [README](README.md).
 
 ---
 
@@ -80,6 +101,6 @@ This release brings a more practical shot-planning and prompt-preservation workf
 - **Recipe behavior:** the automatic transfer fills an empty Recipe for a fresh unique reservation and a single Recipe Prompt node; existing text is preserved until explicitly replaced.
 - **Validation:** PASS confirms structural and semantic contracts. Final visual results depend on the H3 model and its conditioning settings.
 
-Install or update the `h3-prompt-composer/` directory under `ComfyUI/custom_nodes/`, restart ComfyUI, and open the [Recipe example](examples/H3-Director-Recipe-MVP.json). See the [README](README.md) for a guided walkthrough and the [changelog](CHANGELOG.md) for development details.
+Install or update the `h3-prompt-composer/` directory under `ComfyUI/custom_nodes/`, restart ComfyUI, and open the [Recipe example](examples/H3-Director-Portable-Workspace.json). See the [README](README.md) for a guided walkthrough and the [changelog](CHANGELOG.md) for development details.
 
 **Verification:** 120 Python tests and all six frontend regression scripts passed during release preparation. The Director implementation files match the tested rc25b.2 source archive byte for byte.

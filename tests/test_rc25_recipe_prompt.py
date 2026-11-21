@@ -39,7 +39,7 @@ class RecipePromptTests(unittest.TestCase):
 
     def test_portable_example_is_split_into_workspace_and_one_restore_prompt(self):
         import json
-        example = json.loads((PACKAGE / "examples/H3-Director-Recipe-MVP.json").read_text())
+        example = json.loads((PACKAGE / "examples/H3-Director-Portable-Workspace.json").read_text())
         groups = {g["title"]: g for g in example["groups"]}
         self.assertIn("Director Workspace (no auto-sync)", groups)
         self.assertIn("Director Prompt [restore]", groups)

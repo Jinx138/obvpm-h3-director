@@ -65,7 +65,7 @@ class TestReservedInputsAndPictureNumbering(unittest.TestCase):
         self.assertEqual(spec["optional"]["audio_in"][0], "AUDIO")
         self.assertEqual(spec["optional"]["video_in"][0], "VIDEO")
         self.assertEqual(spec["optional"]["length"][0], "*")
-        self.assertTrue(spec["required"]["duration_seconds"][1]["socketless"])
+        self.assertNotIn("socketless", spec["required"]["duration_seconds"][1])
         self.assertIn("Unbundle", spec["optional"]["length"][1]["tooltip"])
         for i in range(1, 10):
             self.assertEqual(spec["optional"][f"picture_{i}"][0], "IMAGE")
@@ -85,7 +85,7 @@ class TestReservedInputsAndPictureNumbering(unittest.TestCase):
         names = [i['name'] for i in builder['inputs']]
         self.assertIn('length', names)
         self.assertNotIn('total_frames', names)
-        self.assertNotIn('duration_seconds', names)
+        self.assertIn('duration_seconds', names)
 
     def test_nine_images_preserve_picture_indices_and_transport_order(self):
         images = [object() for _ in range(9)]

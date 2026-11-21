@@ -281,9 +281,10 @@ class H3DirectorRequestBuilder:
 
     @classmethod
     def INPUT_TYPES(cls):
-        # Native ComfyUI widgets render in required-field declaration order,
-        # before the optional sockets. Put duration LAST among widgets so it
-        # appears below Direction and Reference Roles, not between them.
+        # Native ComfyUI widgets render in required-field declaration order.
+        # Keep duration LAST among widgets; unlike 0.6.2 its same-name FLOAT
+        # socket is connectable. The JS extension positions that socket among
+        # stable inputs, BEFORE the dynamic picture family.
         # reference_roles remains semantically optional (blank = Auto); it is
         # declared as a required UI widget solely to control its layout.
         return {
@@ -303,11 +304,14 @@ class H3DirectorRequestBuilder:
                 }),
                 "duration_seconds": ("FLOAT", {
                     "default": 5.2, "min": 1.0, "max": 15.0, "step": 0.1,
-                    # The Timeline `length` socket is authoritative when used.
-                    # Keep this FLOAT as a local widget only: a second linked
-                    # socket drifts with dynamic picture inputs on graph reload.
-                    "socketless": True,
-                    "tooltip": "Standalone duration in seconds. Overridden when OBVPM Unbundle 'length' is connected.",
+                    # Leave the widget editable and expose its standard FLOAT
+                    # socket. The connected FLOAT overrides this widget;
+                    # OBVPM `length` overrides both when connected.
+                    "tooltip": (
+                        "Shot duration in seconds (Vanilla H3): leave unconnected to edit this "
+                        "FLOAT widget, or connect a FLOAT duration source. If OBVPM Unbundle "
+                        "'length' is connected, its 24-fps frame count has priority over both."
+                    ),
                 }),
             },
             "optional": {
@@ -325,21 +329,37 @@ class H3DirectorRequestBuilder:
                 # this version: no hidden inference, decoding, or track binding.
                 "audio_in": ("AUDIO", {"tooltip": "Reserved for future audio analysis; ignored in this version."}),
                 "video_in": ("VIDEO", {"tooltip": "Reserved for future video analysis; ignored in this version."}),
-                **{f"picture_{i}": ("IMAGE",) for i in range(1, 10)},
+                # Fixed diagnostic/timing inputs are declared BEFORE the dynamic
+                # pictures. This keeps their live socket positions stable when
+                # picture_N inputs grow or shrink (including in subgraphs).
+                # The required duration_seconds widget/socket is positioned
+                # with this fixed family by request_builder_inputs.js.
                 # OBVPM Timeline 0.5.2 Unbundle `length` is a wildcard field
                 # with an INTEGER frame count at the timeline's fixed 24 fps.
-                # Append rather than insert before existing sockets to limit
-                # index migration for previously serialized workflows.
                 "length": ("*", {
                     "tooltip": (
                         "Connect OBVPM Timeline Unbundle 'length' (total frames at 24 fps). "
-                        "Overrides duration_seconds; leave the Timeline duration_seconds input unlinked."
+                        "Takes priority over both a connected duration_seconds FLOAT socket and "
+                        "its editable widget. In standalone H3 workflows leave length unconnected."
                     ),
                 }),
-                # Advisory runtime signals; the native-Run confirmation is a
-                # frontend pre-queue check, independent of these late values.
-                "hunting": ("*", {"tooltip": "Optional OBVPM Timeline Unbundle 'hunting' status for diagnostics (not a generator gate)."}),
-                "hunt_count": ("*", {"tooltip": "Optional OBVPM Timeline Unbundle 'hunt_count' for diagnostics."}),
+                # Advisory runtime signals; these values become available only
+                # during execution, so they cannot gate browser queueing.
+                "hunting": ("*", {"tooltip": (
+                    "Optional OBVPM Timeline Unbundle 'hunting' status. Diagnostics only: "
+                    "this input neither starts nor stops Seed Hunt."
+                )}),
+                "hunt_count": ("*", {"tooltip": (
+                    "Optional OBVPM Timeline Unbundle 'hunt_count'. Records the requested hunt "
+                    "count for diagnostics; does not schedule jobs."
+                )}),
+                **{f"picture_{i}": ("IMAGE", {
+                    "tooltip": (
+                        f"Optional visual reference Picture {i}; remains H3 <Picture {i}> even "
+                        "when earlier Picture slots are disconnected. For Generate #1 only, "
+                        "images larger than 1 megapixel are scaled down without cropping."
+                    ),
+                }) for i in range(1, 10)},
             },
         }
 
@@ -470,8 +490,8 @@ class H3DirectorRequestBuilder:
             continuity["hunt_count"] = hunt_runs
         if hunt_active is True:
             continuity["warnings"].append(
-                "OBVPM Seed Hunt is ACTIVE: use DIRECT for prompt-only execution. "
-                "A native full Run can start H3 hunting jobs; the browser pre-queue guard asks for confirmation."
+                "OBVPM Seed Hunt is ACTIVE: a full workflow Run may start several "
+                "H3 video jobs. Use Shot Editor DIRECT to queue only the Director branch."
             )
 
         start_summary, start_state = self._load_endpoint(

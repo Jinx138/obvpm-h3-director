@@ -48,7 +48,7 @@ extension.beforeRegisterNodeDef(Node,{name:'H3DirectorRequestBuilder'});
 const node = new Node();
 flush();
 assert.deepStrictEqual(node.inputs.map(s=>s.name), [
-  'pin_specs','audio_in','video_in','picture_1','length','hunting','hunt_count']);
+  'pin_specs','audio_in','video_in','length','duration_seconds','hunting','hunt_count','picture_1']);
 // The serialized typed pin from older workflows must become a wildcard
 // so it can accept Unbundle's '*' output in the frontend.
 assert.strictEqual(node.inputs.find(s=>s.name==='pin_specs').type, '*');
@@ -61,18 +61,18 @@ assert(node.widgets[1].options.getMaxHeight()<=96);
 assert(node.widgets[1].options.getMinHeight()<=56);
 assert(node.resizeCalls>0, 'layout recalculated after DOM widget sizing');
 node.inputs.find(s=>s.name==='picture_1').link=11;
-graph.links[11]={target_slot:3};
+graph.links[11]={target_slot:7};
 node.onConnectionsChange(1,3,true,graph.links[11],node.inputs[3]);
 flush();
 assert.deepStrictEqual(node.inputs.map(s=>s.name),[
-  'pin_specs','audio_in','video_in','picture_1','picture_2','length','hunting','hunt_count']);
+  'pin_specs','audio_in','video_in','length','duration_seconds','hunting','hunt_count','picture_1','picture_2']);
 node.inputs.find(s=>s.name==='picture_2').link=12;
-graph.links[12]={target_slot:4};
+graph.links[12]={target_slot:8};
 node.onConnectionsChange(1,4,true,graph.links[12],node.inputs[4]);
 flush();
 assert(node.inputs.some(s=>s.name==='picture_3'));
-assert.strictEqual(graph.links[11].target_slot,3);
-assert.strictEqual(graph.links[12].target_slot,4);
+assert.strictEqual(graph.links[11].target_slot,7);
+assert.strictEqual(graph.links[12].target_slot,8);
 
 // Old rc23/rc24 workflow widgets had direction, duration, reference_roles.
 // After the schema reorder, the duration must still be numeric and roles text.
@@ -102,7 +102,7 @@ assert(legacy.inputs.some(s=>s.name==='picture_4' && s.link===44));
 assert.strictEqual(legacy.inputs.find(s=>s.name==='pin_specs').type, '*');
 assert(legacy.inputs.some(s=>s.name==='picture_5' && s.link===null));
 assert(!legacy.inputs.some(s=>s.name==='picture_6'));
-assert.strictEqual(graph.links[44][4],6);
+assert.strictEqual(graph.links[44][4],10);
 
 // Unlinking 2 removes only the trailing empty 3 while retaining connected 1.
 node.inputs.find(s=>s.name==='picture_2').link=null;
@@ -116,7 +116,7 @@ console.log('PASS rc24 frontend: dynamic picture sockets / old-workflow links / 
 
 // Regression: an externally connected widget input was previously sorted
 // ahead of the images, shifting the picture link indices by one per reload.
-// UI5 removes this legacy socket entirely. The FLOAT widget remains.
+// v0.6.3 retains this legacy FLOAT socket and relinks by input name.
 const reload = (saved, iteration) => {
   app.configuringGraph = true;
   const loaded = new Node();
@@ -129,8 +129,8 @@ const reload = (saved, iteration) => {
   app.configuringGraph = false;
   extension.afterConfigureGraph();
   flush();
-  assert(!loaded.inputs.some(x=>x.name==='duration_seconds'),
-    `round ${iteration}: legacy duration socket must be gone`);
+  assert(loaded.inputs.some(x=>x.name==='duration_seconds' && x.link===206),
+    `round ${iteration}: duration_seconds socket must survive`);
   assert(!loaded.inputs.some(x=>x.name==='total_frames'),
     `round ${iteration}: legacy total_frames must be renamed`);
   assert(loaded.inputs.some(x=>x.name==='length' && x.link===205));
@@ -161,10 +161,10 @@ for (const id of [201,202,203,204,205,206])
   graph.links[id] = {target_slot:0};
 for (let i=0;i<6;i++) saved=reload(saved,i);
 assert.deepStrictEqual(saved.inputs.filter(x=>x.link!=null).map(x=>x.name),
-  ['pin_specs','picture_1','picture_2','picture_3','length']);
+  ['pin_specs','length','duration_seconds','picture_1','picture_2','picture_3']);
 assert.deepStrictEqual(Object.fromEntries(saved.inputs.filter(x=>x.link!=null).map(x=>[x.name,x.link])), {
-  pin_specs:201,picture_1:202,picture_2:203,picture_3:204,
-  length:205
+  pin_specs:201,length:205,duration_seconds:206,
+  picture_1:202,picture_2:203,picture_3:204
 });
 // Follow-up: hunt diagnostic sockets appended after length must also survive
 // repeated graph reloads without stealing any numbered picture connection.
@@ -178,19 +178,19 @@ let huntedSaved = {
 graph.links[207]={target_slot:0}; graph.links[208]={target_slot:0};
 for (let i=0; i<6; i++) huntedSaved=reload(huntedSaved,'hunt-'+i);
 assert.deepStrictEqual(Object.fromEntries(huntedSaved.inputs.filter(x=>x.link!=null).map(x=>[x.name,x.link])),{
-  pin_specs:201,picture_1:202,picture_2:203,picture_3:204,length:205,
-  hunting:207,hunt_count:208,
+  pin_specs:201,length:205,duration_seconds:206,hunting:207,hunt_count:208,
+  picture_1:202,picture_2:203,picture_3:204,
 });
 console.log('PASS repeated reload: hunt/length/picture connections preserved');
 
 console.log('PASS repeated reload: no target_slot or connection name drift');
 
-// New UI5 graph never creates a duration_seconds socket.
+// UI6: duration_seconds is again a connectable FLOAT input.
 const fresh = new Node();
 flush();
-assert(!fresh.inputs.some(x => x.name === 'duration_seconds'));
+assert(fresh.inputs.some(x => x.name === 'duration_seconds' && x.type === 'FLOAT'));
 assert(fresh.inputs.some(x => x.name === 'length'));
 assert(fresh.inputs.some(x => x.name === 'hunting' && x.type === '*'));
 assert(fresh.inputs.some(x => x.name === 'hunt_count' && x.type === '*'));
 assert(fresh.widgets.some(x => x.name === 'duration_seconds' && x.value === 5.2));
-console.log('PASS UI5: duration FLOAT stays widget-only; length is timeline socket');
+console.log('PASS v0.6.3: duration FLOAT widget and connectable socket; length priority');

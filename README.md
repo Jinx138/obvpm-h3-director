@@ -6,9 +6,9 @@ OBVPM Director adds a practical directing layer to **MiniMax H3 Ref2VA in ComfyU
 
 The workflow is built for **hands-on directing**: inspect the visual analysis, refine the shot, edit the resulting prompt, and freeze an approved version for consistent video generations and Seed Hunt.
 
-![OBVPM Director v0.6.2 workspace: Request Builder with prompt history, two-pass llama.cpp analysis and composition, frozen Analysis Snapshot, and Shot Editor with DIRECT execution](docs/images/obvpm-director-workflow-overview.png)
+![OBVPM Director workspace: Request Builder with prompt history, two-pass llama.cpp analysis and composition, frozen Analysis Snapshot, and Shot Editor with DIRECT execution](docs/images/obvpm-director-workflow-overview.png)
 
-**[Quick start](#quick-start)** · **[Open the example workflow](examples/H3-Director-Recipe-MVP.json)** · **[Release notes](RELEASE_NOTES.md)**
+**[Quick start](#quick-start)** · **[Open the example workflow](examples/H3-Director-Portable-Workspace.json)** · **[Release notes](RELEASE_NOTES.md)**
 
 ## What you can do
 
@@ -69,7 +69,7 @@ Open the result in **H3 Director Shot Editor (obvpm)**, adjust anything you wish
 
 ### 1. Install the Director
 
-**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.2**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.2 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
+**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.3**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.3 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
 
 **Manual GitHub alternative:** Clone into ComfyUI's `custom_nodes` directory, keeping the folder name `h3-prompt-composer`:
 
@@ -82,9 +82,9 @@ Do not install both the Manager package and a GitHub clone in the same ComfyUI i
 
 **Requirements:** ComfyUI with Python **3.10+**, a vision-capable Generate node for Pass #1, and a text Generate node for Pass #2. The Director uses the normal ComfyUI Python environment. OBVPM adds timeline continuity and Recipe integration when you use those features.
 
-### 2. Load the example workflow
+### 2. Load the portable Director workspace
 
-Open **[`examples/H3-Director-Recipe-MVP.json`](examples/H3-Director-Recipe-MVP.json)** in ComfyUI. The example demonstrates both analysis and composition stages, materialized shot editing, and the separate Recipe Prompt.
+Open **[`examples/H3-Director-Portable-Workspace.json`](examples/H3-Director-Portable-Workspace.json)** in ComfyUI. The example demonstrates both analysis and composition stages, materialized shot editing, and the separate Recipe Prompt.
 
 Its Generate nodes use the external **`ollama-image-list` llama.cpp** integration. Configure that integration, or connect your own compatible LLM nodes:
 
@@ -99,7 +99,7 @@ Install the external llama.cpp nodepack separately and select your own **GGUF** 
 
 ### 3. Add references and describe the shot
 
-Connect your characters, environments, and objects to the Request Builder's **Picture** inputs. The current UI supports up to **nine numbered Picture inputs**, adding slots as needed. Write the action and desired camera behavior in **Direction**.
+Connect your characters, environments, and objects to the Request Builder's **Picture** inputs. The current UI supports up to **nine numbered Picture inputs**, adding slots as needed. Write the action and desired camera behavior in **Direction**. The fixed `pin_specs`, media, `length`, `duration_seconds`, `hunting`, and `hunt_count` sockets remain above the dynamic Picture inputs so image expansion does not shift existing timeline connections.
 
 The vision pass resolves picture roles automatically. For precise or ambiguous assignments, use the optional `reference_roles` field:
 
@@ -117,7 +117,7 @@ The accepted mappings appear in the reference status. Location references provid
 
 <img src="docs/images/obvpm-director-reference-pictures.png" alt="Character and location reference images connected through OBVPM Picture inputs" width="560">
 
-In standalone mode, set `duration_seconds` for the intended shot length. With OBVPM Timeline 0.5.2, connect its **Unbundle `length`** (24-fps frame count) to the Request Builder's optional `length` input. Leave the Timeline's own `duration_seconds` widget available to Regenerate.
+In standalone mode, edit the `duration_seconds` widget or connect an optional **FLOAT `duration_seconds` socket**. With OBVPM Timeline 0.5.2, connect its **Unbundle `length`** (24-fps frame count) to the Request Builder's optional `length` input; connected `length` takes priority over the FLOAT value. Leave the Timeline's own `duration_seconds` widget available to Regenerate.
 
 ### 4. Analyze, compose, and approve
 
@@ -135,7 +135,7 @@ With OBVPM Timeline 0.5.2, a **H3 Director Recipe Prompt (obvpm)** node holds th
 
 <img src="docs/images/obvpm-director-recipe-prompt.png" alt="H3 Director Recipe Prompt in its dedicated restore group" width="420">
 
-The [Recipe example](examples/H3-Director-Recipe-MVP.json) arranges these responsibilities into two groups:
+The [portable Director workspace](examples/H3-Director-Portable-Workspace.json) keeps these responsibilities in two groups:
 
 | ComfyUI group | Contents | Role |
 |---|---|---|
@@ -174,6 +174,6 @@ Selecting historical clips restores their saved Recipe prompts through OBVPM whi
 - **ComfyUI / Python:** Python 3.10+ with suitable external vision and text Generate nodes.
 - **Example backend:** `ComfyUI-llama-multimodal` llama.cpp with local model and hardware configuration; other compatible backends can be connected.
 - **OBVPM integration:** Recipe synchronization and timeline continuity were developed with **OBVPM Timeline 0.5.2**.
-- **Example workflows:** [H3 Director — Recipe MVP](examples/H3-Director-Recipe-MVP.json) is the recommended starting point. The older [Analysis / Freeze / Recompose example](examples/H3-Director-Analysis-Freeze-Recompose.json) is retained as a reference for the original workflow layout.
+- **Example workflows:** [H3 Director — Portable Workspace](examples/H3-Director-Portable-Workspace.json) is the recommended starting point. The older [Analysis / Freeze / Recompose example](examples/H3-Director-Analysis-Freeze-Recompose.json) is retained as a reference for the original workflow layout.
 
 **[MIT License](LICENSE)** · **[Release notes](RELEASE_NOTES.md)** · **[Changelog](CHANGELOG.md)**

@@ -1,13 +1,14 @@
 import { app } from "../../scripts/app.js";
 
-// rc24 P1: keep the fixed, backend-declared picture_1..picture_9 contract.
-// Only the number of *visible unconnected* slots changes. Old ComfyUI
-// workflow link IDs and non-contiguous pictures must survive configure.
+// v0.6.3 dev: preserve the fixed backend picture_1..picture_9 contract,
+// but keep FIXED socket indices stable before those dynamic image inputs.
+// Older workflow link IDs and sparse/noncontiguous pictures must survive
+// migration and repeated configure without any link stealing.
 const MAX_PICTURES = 9;
 const INPUT_ORDER = [
     "pin_specs", "audio_in", "video_in",
+    "length", "duration_seconds", "hunting", "hunt_count",
     ...Array.from({ length: MAX_PICTURES }, (_, i) => `picture_${i + 1}`),
-    "length", "hunting", "hunt_count",
 ];
 const PICTURE_RE = /^picture_([1-9])$/;
 
@@ -21,6 +22,19 @@ function isConnected(input) {
 
 function addInputIfMissing(node, name, type) {
     if (!byName(node, name)) node.addInput?.(name, type);
+}
+
+// Modern LiteGraph uses a LinkMap/Map; older builds use a plain object.
+// Resolving both matters: otherwise a reorder appears visually correct but
+// target_slot keeps the old picture index and the next connection steals it.
+function getLink(graph, id) {
+    const links = graph?.links;
+    if (!links || id == null) return null;
+    if (typeof links.get === "function") {
+        return links.get(id) ?? links.get(String(id)) ??
+            (Number.isFinite(Number(id)) ? links.get(Number(id)) : null) ?? null;
+    }
+    return links[id] ?? null;
 }
 
 function reorderSlotsWithoutDroppingLinks(node) {
@@ -40,29 +54,23 @@ function reorderSlotsWithoutDroppingLinks(node) {
     for (let i = 0; i < slots.length; i++) {
         const slot = slots[i];
         if (!isConnected(slot)) continue;
-        const link = node.graph?.links?.[slot.link] ?? app.graph?.links?.[slot.link];
+        const link = getLink(node.graph, slot.link) ?? getLink(app.graph, slot.link);
         if (Array.isArray(link)) link[4] = i;
         else if (link) link.target_slot = i;
     }
 }
 
-// ComfyUI frontend v1.17.5+ supports socketless Python widgets. Older
-// workflow JSONs can still carry a serialized duration_seconds socket.
-// Remove that legacy socket AFTER graph restore so no subsequent reload can
-// move its link index. The standalone numeric widget is retained.
-function retireLegacyDurationSocket(node) {
-    const index = node.inputs?.findIndex(slot => slot?.name === "duration_seconds") ?? -1;
-    if (index < 0) return;
-    const socket = node.inputs[index];
-    if (isConnected(socket)) {
-        if (typeof node.disconnectInput !== "function") {
-            console.warn("[OBVPM Director] connected legacy duration socket could not be detached safely");
-            return;
-        }
-        node.disconnectInput(index);
-        if (isConnected(node.inputs?.[index])) return;
+// v0.6.2 made duration_seconds widget-only and retired older FLOAT sockets.
+// v0.6.3 RESTORES its connectable socket: preserve existing duration links.
+// New ComfyUI defines this as a standard required FLOAT/widget pair, while
+// old workflow JSONs may lack the input entirely; add it if absent after load.
+function ensureDurationSocket(node) {
+    addInputIfMissing(node, "duration_seconds", "FLOAT");
+    const socket = byName(node, "duration_seconds");
+    if (socket) {
+        socket.type = "FLOAT";
+        socket.localized_name = "duration_seconds";
     }
-    node.removeInput(index);
 }
 
 // UI4 exposed the timeline frame input as total_frames. Preserve its link
@@ -94,7 +102,7 @@ function syncPictureInputs(node) {
     if (!Array.isArray(node.inputs) || !node.addInput || !node.removeInput) return;
     // Only post-configure: never mutate saved socket indices during restore.
     migrateLegacyLengthSocket(node);
-    retireLegacyDurationSocket(node);
+    ensureDurationSocket(node);
     // Old workflows may have slots 2..4 (or even 9) connected while earlier
     // inputs are empty. Keep all connections and the highest connected index.
     let highestConnected = 0;
@@ -127,8 +135,8 @@ function syncPictureInputs(node) {
         lengthInput.type = "*";
         lengthInput.localized_name = "length";
     }
-    // Append-only OBVPM hunt diagnostics: preserve all previously saved
-    // picture/length links by semantic name and repair target_slot indices.
+    // Stable OBVPM diagnostics stay BEFORE the growing picture socket family.
+    // After each mutation, repair positional link target_slot by semantic name.
     addInputIfMissing(node, "hunting", "*");
     addInputIfMissing(node, "hunt_count", "*");
     for (const name of ["hunting", "hunt_count"]) {
@@ -255,27 +263,36 @@ app.registerExtension({
         // A separate post-configure phase is essential: removing/reordering
         // sockets inside onConfigure/onConnectionsChange races the frontend's
         // link reconstruction and leads to cumulative picture-link drift.
-        const graph = app.graph;
-        const nodes = graph?._nodes ?? graph?.nodes ?? [];
-        for (const node of nodes) {
-            if (node?.type !== "H3DirectorRequestBuilder") continue;
-            if (Array.isArray(node.__directorSavedLinks)) {
-                const mapping = node.__directorSavedLinks;
-                delete node.__directorSavedLinks;
-                for (const {name, link: id} of mapping) {
-                    const slot = byName(node, name) ??
-                        (name === "total_frames" ? byName(node, "length") : null);
-                    const info = graph?.links?.[id];
-                    if (!slot || !info) continue;
-                    // Recover semantic endpoint by saved INPUT NAME, never
-                    // by a stale numeric target_slot from the old layout.
-                    for (const candidate of node.inputs ?? []) {
-                        if (candidate !== slot && candidate?.link === id) candidate.link = null;
+        // Walk nested subgraphs as well as the root. A saved Director inside
+        // a subgraph must receive the same semantic link repair on reload.
+        const seen = new Set();
+        function visit(graph) {
+            if (!graph || seen.has(graph)) return;
+            seen.add(graph);
+            const nodes = graph._nodes ?? graph.nodes ?? [];
+            for (const node of nodes) {
+                if (node?.type === "H3DirectorRequestBuilder") {
+                    if (Array.isArray(node.__directorSavedLinks)) {
+                        const mapping = node.__directorSavedLinks;
+                        delete node.__directorSavedLinks;
+                        for (const {name, link: id} of mapping) {
+                            const slot = byName(node, name) ??
+                                (name === "total_frames" ? byName(node, "length") : null);
+                            const info = getLink(node.graph ?? graph, id);
+                            if (!slot || !info) continue;
+                            // Recover semantic endpoint by saved INPUT NAME,
+                            // regardless of its old positional target_slot.
+                            for (const candidate of node.inputs ?? []) {
+                                if (candidate !== slot && candidate?.link === id) candidate.link = null;
+                            }
+                            slot.link = id;
+                        }
                     }
-                    slot.link = id;
+                    scheduleSync(node);
                 }
+                if (node?.subgraph) visit(node.subgraph);
             }
-            scheduleSync(node);
         }
+        visit(app.graph);
     },
 });

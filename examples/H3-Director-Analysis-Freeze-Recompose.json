@@ -41,17 +41,26 @@
           "link": null
         },
         {
-          "localized_name": "picture_1",
-          "name": "picture_1",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
           "localized_name": "length",
           "name": "length",
           "shape": 7,
           "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "duration_seconds",
+          "name": "duration_seconds",
+          "type": "FLOAT",
+          "widget": {
+            "name": "duration_seconds"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "picture_1",
+          "name": "picture_1",
+          "shape": 7,
+          "type": "IMAGE",
           "link": null
         },
         {
@@ -122,7 +131,8 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "H3DirectorRequestBuilder"
+        "Node name for S&R": "H3DirectorRequestBuilder",
+        "ver": "0.6.3.dev1"
       },
       "widgets_values": [
         "",

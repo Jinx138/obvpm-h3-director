@@ -90,8 +90,8 @@ class HuntSignalTests(unittest.TestCase):
                 self.assertIs(_normalize_hunting(raw),want)
     def test_optional_schema_extends_after_length_and_picture_nine(self):
         keys=list(H3DirectorRequestBuilder.INPUT_TYPES()['optional'])
-        self.assertEqual(keys[-3:],['length','hunting','hunt_count'])
-        self.assertEqual(keys.index('picture_9')+1,keys.index('length'))
+        self.assertEqual(keys[3:6], ['length','hunting','hunt_count'])
+        self.assertEqual(keys.index('hunt_count')+1,keys.index('picture_1'))
         self.assertEqual(H3DirectorRequestBuilder.INPUT_TYPES()['optional']['hunting'][0],'*')
         self.assertEqual(H3DirectorRequestBuilder.RETURN_NAMES[2],'llm_images')
 

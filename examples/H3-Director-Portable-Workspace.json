@@ -23,7 +23,7 @@
           "localized_name": "pin_specs",
           "name": "pin_specs",
           "shape": 7,
-          "type": "OBVPM_H3_PINSPECS",
+          "type": "*",
           "link": null
         },
         {
@@ -41,17 +41,40 @@
           "link": null
         },
         {
-          "localized_name": "picture_1",
-          "name": "picture_1",
-          "shape": 7,
-          "type": "IMAGE",
-          "link": null
-        },
-        {
           "localized_name": "length",
           "name": "length",
           "shape": 7,
           "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "duration_seconds",
+          "name": "duration_seconds",
+          "type": "FLOAT",
+          "widget": {
+            "name": "duration_seconds"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "hunting",
+          "name": "hunting",
+          "shape": 7,
+          "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "hunt_count",
+          "name": "hunt_count",
+          "shape": 7,
+          "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "picture_1",
+          "name": "picture_1",
+          "shape": 7,
+          "type": "IMAGE",
           "link": null
         },
         {
@@ -66,7 +89,6 @@
         {
           "localized_name": "reference_roles",
           "name": "reference_roles",
-          "shape": 7,
           "type": "STRING",
           "widget": {
             "name": "reference_roles"
@@ -122,34 +144,46 @@
         }
       ],
       "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.3",
         "Node name for S&R": "H3DirectorRequestBuilder"
       },
       "widgets_values": [
         "",
         "",
         5.2,
-        ""
+        "",
+        null,
+        null,
+        null,
+        "History: draft · 0 saved",
+        "○ Reference roles: input changed — Re-analyze to refresh"
       ],
       "widgets_values_named": {
         "direction": "",
-        "duration_seconds": 5.2,
         "reference_roles": "",
-        "director_reference_status": ""
+        "duration_seconds": 5.2,
+        "History · Save": "",
+        "History · Delete": null,
+        "History · ◀ Previous": null,
+        "History · Next ▶": null,
+        "director_history_status": "History: draft · 0 saved",
+        "director_reference_status": "○ Reference roles: input changed — Re-analyze to refresh"
       }
     },
     {
       "id": 2,
       "type": "OllamaImageList_LlamaCppProfiledGenerate",
       "pos": [
-        -470,
-        7310
+        -500,
+        7300
       ],
       "size": [
         250,
         540
       ],
       "flags": {},
-      "order": 5,
+      "order": 7,
       "mode": 0,
       "inputs": [
         {
@@ -159,17 +193,17 @@
           "link": 1
         },
         {
+          "localized_name": "prefill_profile",
+          "name": "prefill_profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+          "link": 22
+        },
+        {
           "localized_name": "hardware_profile",
           "name": "hardware_profile",
           "shape": 7,
           "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
           "link": 2
-        },
-        {
-          "localized_name": "prefill_profile",
-          "name": "prefill_profile",
-          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
-          "link": 22
         },
         {
           "localized_name": "reasoning",
@@ -261,15 +295,6 @@
           "link": null
         },
         {
-          "localized_name": "image_max_tokens",
-          "name": "image_max_tokens",
-          "type": "INT",
-          "widget": {
-            "name": "image_max_tokens"
-          },
-          "link": null
-        },
-        {
           "localized_name": "seed",
           "name": "seed",
           "type": "INT",
@@ -288,20 +313,20 @@
           "link": null
         },
         {
+          "localized_name": "video_with_audio",
+          "name": "video_with_audio",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "video_with_audio"
+          },
+          "link": null
+        },
+        {
           "localized_name": "verbose",
           "name": "verbose",
           "type": "BOOLEAN",
           "widget": {
             "name": "verbose"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "image_min_tokens",
-          "name": "image_min_tokens",
-          "type": "INT",
-          "widget": {
-            "name": "image_min_tokens"
           },
           "link": null
         }
@@ -353,12 +378,11 @@
         "",
         16384,
         4096,
-        0,
-        45,
+        42,
         "fixed",
         "",
         false,
-        0
+        false
       ],
       "widgets_values_named": {
         "model_path": "",
@@ -367,12 +391,11 @@
         "prompt": "",
         "n_ctx": 16384,
         "max_tokens": 4096,
-        "image_max_tokens": 0,
-        "seed": 45,
+        "seed": 42,
         "control_after_generate": "fixed",
         "stop": "",
-        "verbose": false,
-        "image_min_tokens": 0
+        "video_with_audio": false,
+        "verbose": false
       }
     },
     {
@@ -387,7 +410,7 @@
         610
       ],
       "flags": {},
-      "order": 6,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -455,6 +478,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.3",
         "Node name for S&R": "H3DirectorAnalysisSnapshot"
       },
       "widgets_values": [
@@ -476,8 +501,8 @@
       "id": 4,
       "type": "OllamaImageList_LlamaCppModelProfile",
       "pos": [
-        -460,
-        7250
+        -500,
+        7210
       ],
       "size": [
         230,
@@ -604,8 +629,8 @@
       "id": 5,
       "type": "LlamaCppMtmd_HardwareRuntimeProfile",
       "pos": [
-        -140,
-        7270
+        -500,
+        7090
       ],
       "size": [
         290,
@@ -627,7 +652,7 @@
           "link": null
         },
         {
-          "localized_name": "type_k",
+          "localized_name": "K cache type",
           "name": "type_k",
           "type": "COMBO",
           "widget": {
@@ -636,7 +661,7 @@
           "link": null
         },
         {
-          "localized_name": "type_v",
+          "localized_name": "V cache type",
           "name": "type_v",
           "type": "COMBO",
           "widget": {
@@ -694,6 +719,7 @@
       ],
       "properties": {
         "cnr_id": "ollama-image-list",
+        "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
         "Node name for S&R": "LlamaCppMtmd_HardwareRuntimeProfile"
       },
       "widgets_values": [
@@ -729,7 +755,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 8,
+      "order": 10,
       "mode": 0,
       "showAdvanced": false,
       "inputs": [
@@ -740,17 +766,17 @@
           "link": 8
         },
         {
+          "localized_name": "prefill_profile",
+          "name": "prefill_profile",
+          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+          "link": 23
+        },
+        {
           "localized_name": "hardware_profile",
           "name": "hardware_profile",
           "shape": 7,
           "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
           "link": 9
-        },
-        {
-          "localized_name": "prefill_profile",
-          "name": "prefill_profile",
-          "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
-          "link": 23
         },
         {
           "localized_name": "reasoning",
@@ -842,15 +868,6 @@
           "link": null
         },
         {
-          "localized_name": "image_max_tokens",
-          "name": "image_max_tokens",
-          "type": "INT",
-          "widget": {
-            "name": "image_max_tokens"
-          },
-          "link": null
-        },
-        {
           "localized_name": "seed",
           "name": "seed",
           "type": "INT",
@@ -869,20 +886,20 @@
           "link": null
         },
         {
+          "localized_name": "video_with_audio",
+          "name": "video_with_audio",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "video_with_audio"
+          },
+          "link": null
+        },
+        {
           "localized_name": "verbose",
           "name": "verbose",
           "type": "BOOLEAN",
           "widget": {
             "name": "verbose"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "image_min_tokens",
-          "name": "image_min_tokens",
-          "type": "INT",
-          "widget": {
-            "name": "image_min_tokens"
           },
           "link": null
         }
@@ -934,12 +951,11 @@
         "",
         16384,
         2048,
-        0,
-        45,
+        42,
         "fixed",
         "",
         false,
-        0
+        false
       ],
       "widgets_values_named": {
         "model_path": "",
@@ -948,12 +964,11 @@
         "prompt": "",
         "n_ctx": 16384,
         "max_tokens": 2048,
-        "image_max_tokens": 0,
-        "seed": 45,
+        "seed": 42,
         "control_after_generate": "fixed",
         "stop": "",
-        "verbose": false,
-        "image_min_tokens": 0
+        "video_with_audio": false,
+        "verbose": false
       }
     },
     {
@@ -1096,7 +1111,7 @@
         180
       ],
       "flags": {},
-      "order": 9,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -1169,6 +1184,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.3",
         "Node name for S&R": "H3DirectorResponseValidator"
       }
     },
@@ -1184,7 +1201,7 @@
         140
       ],
       "flags": {},
-      "order": 7,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
@@ -1241,6 +1258,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.3",
         "Node name for S&R": "H3DirectorAnalysisCompose"
       },
       "widgets_values": [
@@ -1255,14 +1274,16 @@
       "type": "H3DirectorVRAMHandoff",
       "pos": [
         -500,
-        7020
+        7030
       ],
       "size": [
         280,
         130
       ],
-      "flags": {},
-      "order": 4,
+      "flags": {
+        "collapsed": true
+      },
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
@@ -1312,6 +1333,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.3",
         "Node name for S&R": "H3DirectorVRAMHandoff"
       },
       "widgets_values": [
@@ -1333,7 +1356,7 @@
         870
       ],
       "flags": {},
-      "order": 10,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -1412,24 +1435,30 @@
         }
       ],
       "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.3",
         "Node name for S&R": "H3DirectorShotState",
         "director_state_schema": "obvpm.director.shot_state",
         "director_state_schema_version": 1
       },
       "widgets_values": [
         false,
+        null,
         "",
         "",
         "",
+        null,
         null,
         null
       ],
       "widgets_values_named": {
         "materialized": false,
+        "▶ DIRECT": null,
         "shot_direction": "",
         "shot_h3_prompt": "",
         "shot_analysis": "",
         "Reset Director Context (clear saved state)": null,
+        "Apply approved prompt to Recipe": null,
         "Recompose (keep analysis)": null
       }
     },
@@ -1445,7 +1474,7 @@
         550
       ],
       "flags": {},
-      "order": 11,
+      "order": 4,
       "mode": 0,
       "inputs": [
         {
@@ -1467,6 +1496,8 @@
         }
       ],
       "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.3",
         "Node name for S&R": "H3DirectorRecipePrompt"
       },
       "widgets_values": [
@@ -1477,16 +1508,20 @@
       }
     },
     {
+      "id": 13,
       "type": "LlamaCppMtmd_PrefillProfile",
       "pos": [
-        -610,
-        7920
+        -500,
+        7150
       ],
       "size": [
         310,
-        205
+        210
       ],
-      "flags": {},
+      "flags": {
+        "collapsed": true
+      },
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
@@ -1548,6 +1583,7 @@
       ],
       "properties": {
         "cnr_id": "ollama-image-list",
+        "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
         "Node name for S&R": "LlamaCppMtmd_PrefillProfile"
       },
       "widgets_values": [
@@ -1559,57 +1595,15 @@
       ],
       "widgets_values_named": {
         "profile": "Custom",
-        "n_batch": 512,
+        "n_batch": 1024,
         "n_ubatch": 0,
         "image_min_tokens": 0,
         "image_max_tokens": 0
-      },
-      "id": 13,
-      "order": 12
+      }
     }
   ],
   "links": [
     [
-      1,
-      4,
-      0,
-      2,
-      0,
-      "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE"
-    ],
-    [
-      2,
-      5,
-      0,
-      2,
-      1,
-      "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE"
-    ],
-    [
-      3,
-      1,
-      2,
-      2,
-      5,
-      "IMAGE"
-    ],
-    [
-      4,
-      10,
-      0,
-      2,
-      10,
-      "STRING"
-    ],
-    [
-      5,
-      10,
-      1,
-      2,
-      11,
-      "STRING"
-    ],
-    [
       6,
       2,
       0,
@@ -1623,38 +1617,6 @@
       3,
       3,
       1,
-      "STRING"
-    ],
-    [
-      8,
-      7,
-      0,
-      6,
-      0,
-      "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE"
-    ],
-    [
-      9,
-      5,
-      0,
-      6,
-      1,
-      "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE"
-    ],
-    [
-      10,
-      9,
-      0,
-      6,
-      10,
-      "STRING"
-    ],
-    [
-      11,
-      9,
-      1,
-      6,
-      11,
       "STRING"
     ],
     [
@@ -1738,20 +1700,92 @@
       "STRING"
     ],
     [
+      1,
+      4,
+      0,
+      2,
+      0,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE"
+    ],
+    [
       22,
       13,
       0,
       2,
-      2,
+      1,
       "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE"
+    ],
+    [
+      2,
+      5,
+      0,
+      2,
+      2,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE"
+    ],
+    [
+      3,
+      1,
+      2,
+      2,
+      5,
+      "IMAGE"
+    ],
+    [
+      4,
+      10,
+      0,
+      2,
+      10,
+      "STRING"
+    ],
+    [
+      5,
+      10,
+      1,
+      2,
+      11,
+      "STRING"
+    ],
+    [
+      8,
+      7,
+      0,
+      6,
+      0,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE"
     ],
     [
       23,
       13,
       0,
       6,
-      2,
+      1,
       "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE"
+    ],
+    [
+      9,
+      5,
+      0,
+      6,
+      2,
+      "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE"
+    ],
+    [
+      10,
+      9,
+      0,
+      6,
+      10,
+      "STRING"
+    ],
+    [
+      11,
+      9,
+      1,
+      6,
+      11,
+      "STRING"
     ]
   ],
   "groups": [
@@ -1762,7 +1796,7 @@
         -1010,
         6930,
         1960,
-        1250
+        1010
       ],
       "color": "#3f789e",
       "flags": {}
@@ -1783,10 +1817,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.4177248169416939,
+      "scale": 1.1,
       "offset": [
-        2775.54825619957,
-        -6153.541847160929
+        1025.7172876801083,
+        -6904.884148668374
       ]
     }
   },

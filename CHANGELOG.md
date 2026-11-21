@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.3 — 2026-11-21 (portable timing & stable picture wiring)
+
+- Restored the connectable `duration_seconds` FLOAT input for vanilla H3 workflows. The local widget is the fallback; linked OBVPM `length` (24-fps frames) takes priority.
+- Moved stable Request Builder sockets (`length`, `duration_seconds`, `hunting`, `hunt_count`) before dynamically growing Picture inputs. Repaired link indices for both legacy object-backed and modern Map-backed LiteGraph connections, including subgraphs.
+- Updated duration, timeline, hunt diagnostics and reference-picture tooltips.
+- Renamed the portable example to `H3-Director-Portable-Workspace.json`, using the user-tested workspace arrangement, fixed seeds 42, and both materialization switches off in the saved example.
+- Validated in live ComfyUI: vanilla H3 Ref2VA prompt integration, fixed timing/hunt connections through dynamic picture expansion, and the restored connectable duration input.
+
 ## v0.6.2 — 2026-11-21 (shot iteration and targeted queue isolation)
 
 - Release the tested dev3 code baseline with automatic 1 MP image downscaling on Generate #1 only, including optional continuity images, while preserving original Picture tensors.
