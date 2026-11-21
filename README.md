@@ -21,6 +21,12 @@ The workflow is built for **hands-on directing**: inspect the visual analysis, r
 
 The Director handles scene semantics, reference roles, dialogue, camera logic, continuity reasoning, and H3 prompt composition. **OBVPM handles the timeline, generation, takes, editing, Recipes, Motion Context, and provenance.** Your preferred compatible LLM nodes perform the two inference passes.
 
+## Credits and acknowledgements
+
+Special thanks to **[chanon](https://github.com/chanon)** for creating and developing **[ComfyUI-OBVPM](https://github.com/chanon/comfyui-obvpm)** and **[OBVPM Timeline](https://github.com/chanon/comfyui-obvpm-timeline)**. Their work on H3 video generation, timeline editing, and continuity made this companion directing workflow possible.
+
+**OBVPM Director is an independent, complementary project** focused on scene direction, visual reference analysis, prompt composition, and continuity reasoning. It integrates with OBVPM's interfaces; it does not bundle OBVPM's implementation or Patreon-exclusive Pro workflows.
+
 ## From direction to H3 prompt
 
 ```text
