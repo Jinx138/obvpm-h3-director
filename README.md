@@ -63,14 +63,16 @@ Open the result in **H3 Director Shot Editor (obvpm)**, adjust anything you wish
 
 ### 1. Install the Director
 
-Clone into ComfyUI's `custom_nodes` directory, keeping the folder name `h3-prompt-composer`:
+**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.1**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.1 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
+
+**Manual GitHub alternative:** Clone into ComfyUI's `custom_nodes` directory, keeping the folder name `h3-prompt-composer`:
 
 ```bash
 cd /path/to/ComfyUI/custom_nodes
 git clone https://github.com/Jinx138/obvpm-h3-director.git h3-prompt-composer
 ```
 
-Restart ComfyUI and refresh your browser. The nodes appear under **`obvpm/director`** and use the `(obvpm)` suffix in their names.
+Do not install both the Manager package and a GitHub clone in the same ComfyUI instance. Restart ComfyUI and refresh your browser. The nodes appear under **`obvpm/director`** and use the `(obvpm)` suffix in their names.
 
 **Requirements:** ComfyUI with Python **3.10+**, a vision-capable Generate node for Pass #1, and a text Generate node for Pass #2. The Director uses the normal ComfyUI Python environment. OBVPM adds timeline continuity and Recipe integration when you use those features.
 
@@ -85,7 +87,7 @@ Its Generate nodes use the external **`ollama-image-list` llama.cpp** integratio
 
 Choose your locally available models and hardware profiles. The two-pass interface also supports other compatible ComfyUI inference backends.
 
-**llama.cpp setup (current plugin):** Recent versions of `ComfyUI-llama-multimodal` require a `[llama.cpp] Prefill Profile` connection. Both Generate nodes in the updated examples share one Prefill Profile set to `Custom` (`n_batch=512`, `n_ubatch=0`, `image_min_tokens=0`, `image_max_tokens=0`). The zero values retain the backend's default behavior; tune the batch settings only if your model needs it.
+**llama.cpp setup (current plugin, external dependency):** Install **ComfyUI-llama-multimodal** separately through ComfyUI Manager (or use your own compatible inference nodes). Recent versions of `ComfyUI-llama-multimodal` require a `[llama.cpp] Prefill Profile` connection. Both Generate nodes in the updated examples share one Prefill Profile set to `Custom` (`n_batch=512`, `n_ubatch=0`, `image_min_tokens=0`, `image_max_tokens=0`). The zero values retain the backend's default behavior; tune the batch settings only if your model needs it.
 
 Put your GGUF models in `ComfyUI/models/LLM/` along with the matching vision projector (`mmproj`) when required. Restart ComfyUI so the file selectors refresh, then choose your files from **`model_path`** and **`mmproj_path`** in each Generate node (use `[none]` for text-only generation). The separate **Model Profile** nodes set sampling/model behavior, not filesystem paths. The examples also use the current `[llama.cpp] Hardware Runtime Profile` node; llama.cpp moved the batch settings from that node into **Prefill Profile**. Model paths in the example are deliberately unselected because they depend on your installation.
 

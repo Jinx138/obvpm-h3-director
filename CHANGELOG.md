@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.1 — 2026-11-21 (llama.cpp example compatibility)
+
+- Updated the two public example workflows for current `ComfyUI-llama-multimodal`: a required shared `[llama.cpp] Prefill Profile` for Generate #1/#2 and the renamed `[llama.cpp] Hardware Runtime Profile` node.
+- Prefill defaults are `Custom` / `n_batch=512`, `n_ubatch=0`, `image_min_tokens=0`, `image_max_tokens=0`; the zero values leave optional override controls disabled. Model paths remain installation-specific and must be selected by the user.
+- Updated README installation/setup guidance for ComfyUI Manager and llama.cpp, including where GGUF and mmproj files belong.
+- No changes to Director Python, frontend JavaScript, prompt skills, node IDs, sockets, materialization, Recipes, or OBVPM integration relative to v0.6.0. The experimental v0.6.1-dev2 history/editor UI is not included.
+
 ## v0.6.0 — 2026-11-15 (rc25b.2 tested baseline)
 
 - Public release preparation based on the tested rc25b.2 code baseline, with no implementation changes to the Director's Python or frontend JavaScript.

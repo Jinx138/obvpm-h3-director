@@ -1,4 +1,24 @@
-# OBVPM Director v0.6.0
+# OBVPM Director v0.6.1
+
+**Version 0.6.1 · 21 November 2026 · ComfyUI llama.cpp compatibility update**
+
+This maintenance release makes the two bundled example workflows compatible with recent versions of the external **ComfyUI-llama-multimodal** nodepack. The OBVPM Director implementation itself remains the same as the tested v0.6.0 release.
+
+## Changes in v0.6.1
+
+- Both `H3-Director-Recipe-MVP.json` (recommended) and `H3-Director-Analysis-Freeze-Recompose.json` now use the current `[llama.cpp] Hardware Runtime Profile` node and connect a required `[llama.cpp] Prefill Profile` to both Generate passes.
+- The shared Prefill Profile uses `Custom` with `n_batch=512`, `n_ubatch=0`, `image_min_tokens=0`, and `image_max_tokens=0`. Zero values disable the optional overrides, retaining backend defaults for those controls.
+- The README explains the current llama.cpp nodes, model selection, ComfyUI Manager installation, and GGUF / `mmproj` placement.
+
+**Scope:** No changes to Director Python, JavaScript, prompt skills, analysis contract, validator, timeline integration, Recipe behavior, or workflow-local state. The experimental v0.6.1-dev2 UI features are not included. This release does not claim to fix occasional malformed JSON produced by external inference models.
+
+## Install / update
+
+Install or update **H3 OBVPM Director** (`h3-obvpm-director`) to **0.6.1** using ComfyUI Manager after the Registry publication, restart ComfyUI, and open the current [Recipe example](examples/H3-Director-Recipe-MVP.json). The external llama.cpp nodepack is a separate installation and must also be available. Select GGUF model and matching `mmproj` in the Generate nodes. See [README](README.md).
+
+---
+
+# Previous release: OBVPM Director v0.6.0
 
 **Version 0.6.0 · 15 November 2026 · Based on the extensively live-tested rc25b.2 build**
 
