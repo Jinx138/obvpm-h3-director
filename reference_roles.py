@@ -48,6 +48,15 @@ def _slot_value(text):
             if re.search(r"\b" + re.escape(word) + r"\b", value, re.I):
                 role = ROLE_WORDS[word]
                 break
+    # Mark named hand/face/detail reference shots as character references,
+    # without inventing a new Subject identity.
+    if role == "unknown" and re.search(
+        r"(?:\b(?:hands?|eyes?|face|hair|fingers?|arms?|feet|nails?|"
+        r"h[aä]nde?|gesicht|augen|finger|nahaufnahme)\b.{0,40}"
+        r"\b(?:of|from|for|von|des|der)\b|"
+        r"['’]s\s+(?:hands?|eyes?|face|hair|fingers?|arms?|feet|nails?))",
+        value, flags=re.I):
+        role = "character"
     return {"role": role, "label": value[:120]}
 
 
@@ -72,7 +81,13 @@ def parse_overrides(text, picture_slots, *, direction=False):
         for m in REVERSED_RE.finditer(raw):
             n = int(m.group(2))
             if n in available and str(n) not in result:
-                result[str(n)] = {"role": "character", "label": m.group(1)[:120]}
+                # A reversed "the living room from Picture 5" binding
+                # is an environment, not a person. Parse the actual phrase.
+                parsed = _slot_value(m.group(1))
+                if parsed:
+                    label = re.sub(r"^(?:and|or)\s+(?=the\b)", "", parsed["label"], flags=re.I).strip()
+                    role = parsed["role"] if parsed["role"] != "unknown" else "character"
+                    result[str(n)] = {"role": role, "label": label[:120]}
     return result
 
 
@@ -119,6 +134,7 @@ def resolve_reference_roles(analysis, context):
         asset = existing.get(n, {})
         role = _clean_role(asset.get("primary_role"))
         raw_label = str(asset.get("label") or "").strip()
+        raw_label = re.sub(r"^(?:and|or)\s+(?=the\b)", "", raw_label, flags=re.I).strip()
         # The analyser may add a name only when grounded in the user text.
         # Free-form image captions cannot establish a person's name.
         label = raw_label if raw_label and raw_label.casefold() in str(ctx.get("direction") or "").casefold() else ""
@@ -152,8 +168,13 @@ def resolve_reference_roles(analysis, context):
             for subject in analysis.get("subjects") or []:
                 if not isinstance(subject, dict):
                     continue
-                if n in _as_int_set(subject.get("source_pictures") or []) and not subject.get("name"):
-                    subject["name"] = label
+                if n in _as_int_set(subject.get("source_pictures") or []):
+                    existing_name = str(subject.get("name") or "").strip()
+                    clean_name = re.sub(r"^(?:and|or)\s+(?=the\b)", "", existing_name, flags=re.I).strip()
+                    # Never replace a distinct name; only fill blank or
+                    # remove a leading narrative conjunction for this label.
+                    if not existing_name or clean_name == label:
+                        subject["name"] = label
     return out
 
 

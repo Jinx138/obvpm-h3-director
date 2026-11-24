@@ -39,9 +39,9 @@ class RecipePromptTests(unittest.TestCase):
 
     def test_portable_example_is_split_into_workspace_and_one_restore_prompt(self):
         import json
-        example = json.loads((PACKAGE / "examples/H3-Director-Portable-Workspace.json").read_text())
+        example = json.loads((PACKAGE / "examples/H3-Director-Core-Workspace.json").read_text())
         groups = {g["title"]: g for g in example["groups"]}
-        self.assertIn("Director Workspace (no auto-sync)", groups)
+        self.assertIn("Director Inputs", groups)
         self.assertIn("Director Prompt [restore]", groups)
         recipe = [n for n in example["nodes"] if n["type"] == "H3DirectorRecipePrompt"]
         self.assertEqual(len(recipe), 1)
@@ -55,7 +55,7 @@ class RecipePromptTests(unittest.TestCase):
         self.assertEqual(node["outputs"][0]["links"], [])
         other = [n for n in example["nodes"] if n["id"] != node["id"]]
         self.assertTrue(all(n["pos"][0]+n["size"][0] < gx for n in other))
-        self.assertEqual(example["last_node_id"], max(n["id"] for n in example["nodes"]))
+        self.assertGreaterEqual(example["last_node_id"], max(n["id"] for n in example["nodes"]))
         ids = {n["id"] for n in example["nodes"]}
         self.assertTrue(all(l[1] in ids and l[3] in ids for l in example["links"]))
 

@@ -6,13 +6,14 @@ OBVPM Director adds a practical directing layer to **MiniMax H3 Ref2VA in ComfyU
 
 The workflow is built for **hands-on directing**: inspect the visual analysis, refine the shot, edit the resulting prompt, and freeze an approved version for consistent video generations and Seed Hunt.
 
-![OBVPM Director workspace: Request Builder with prompt history, two-pass llama.cpp analysis and composition, frozen Analysis Snapshot, and Shot Editor with DIRECT execution](docs/images/obvpm-director-workflow-overview.png)
+**Director workspace:** Flavour + Request Builder → Director Core (native subgraph) → Shot Editor → optional Recipe Prompt.
 
-**[Quick start](#quick-start)** · **[Open the example workflow](examples/H3-Director-Portable-Workspace.json)** · **[Release notes](RELEASE_NOTES.md)**
+**[Quick start](#quick-start)** · **[Open the example workflow](examples/H3-Director-Core-Workspace.json)** · **[Release notes](RELEASE_NOTES.md)**
 
 ## What you can do
 
 - **Direct in your own words.** Describe gestures, intent, blocking, camera movement, dialogue, and atmosphere. The Director translates the direction into H3's structured prompt format.
+- **Shape the performance.** Select a genre, directing style and performance settings with the required Flavour node. The two passes use the selected skills to direct individual actors and their interaction.
 - **Use visual references.** Build scenes around specific characters, locations, and objects, with automatic picture-role analysis and optional explicit assignments.
 - **Maintain continuity.** Use OBVPM's Extend, Prepend, and Bridge context to keep identities, spaces, and unfolding action coherent between shots.
 - **Refine before generating.** Review the analysis and validator feedback, then edit the final prompt directly.
@@ -30,7 +31,7 @@ Special thanks to **[chanon](https://github.com/chanon)** for creating and devel
 ## From direction to H3 prompt
 
 ```text
-Your Direction + Reference Pictures + optional OBVPM context
+Flavour + Direction + Reference Pictures + optional OBVPM context
                          │
                 Director Request Builder
                          │
@@ -61,15 +62,21 @@ A young man enters the room and joins his father sitting on the sofa,
 saying "Hi dad, how are you doing?"
 ```
 
-The Director associates the references with the people and location, develops blocking and camera language, and produces the six-section H3 prompt. Quoted user dialogue is preserved exactly. You can also explicitly ask the Director to write dialogue for a scene.
+The Director associates the references with the people and location, develops blocking and camera language, and produces the six-section H3 prompt. The dialogue contract requires quoted user dialogue to retain its exact wording; review the validator report before approving a prompt. You can also explicitly ask the Director to write dialogue for a scene.
 
 Open the result in **H3 Director Shot Editor (obvpm)**, adjust anything you wish, and materialize the approved version. That prompt remains available for later seed trials and shot generation.
+
+### Director workspace in OBVPM
+
+![H3 Director v0.6.4 — Flavour, Request Builder, Director Core and editable Shot Editor](docs/images/obvpm-director-workflow-overview.png)
+
+The screenshot shows the Director integrated into an existing OBVPM workflow, with a saved analysis and editable materialized prompt. The portable example contains the Director workspace, not the OBVPM Pro workflow shown here.
 
 ## Quick start
 
 ### 1. Install the Director
 
-**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.3**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.3 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
+**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.4**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.4 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
 
 **Manual GitHub alternative:** Clone into ComfyUI's `custom_nodes` directory, keeping the folder name `h3-prompt-composer`:
 
@@ -84,7 +91,7 @@ Do not install both the Manager package and a GitHub clone in the same ComfyUI i
 
 ### 2. Load the portable Director workspace
 
-Open **[`examples/H3-Director-Portable-Workspace.json`](examples/H3-Director-Portable-Workspace.json)** in ComfyUI. The example demonstrates both analysis and composition stages, materialized shot editing, and the separate Recipe Prompt.
+Open **[`examples/H3-Director-Core-Workspace.json`](examples/H3-Director-Core-Workspace.json)** in ComfyUI. This is the single supported example for v0.6.4. Copy the complete Director block into your own workflow and configure the models inside **H3 Director Core (obvpm)**. Keep the Recipe Prompt in its separate `[restore]` group for OBVPM integration. The Flavour node is required and stays alongside Request Builder. Existing flat workflows can still use the modular nodes, but must connect Flavour and refresh old analysis snapshots.
 
 Its Generate nodes use the external **`ollama-image-list` llama.cpp** integration. Configure that integration, or connect your own compatible LLM nodes:
 
@@ -93,13 +100,17 @@ Its Generate nodes use the external **`ollama-image-list` llama.cpp** integratio
 
 Choose your locally available models and hardware profiles. The two-pass interface also supports other compatible ComfyUI inference backends.
 
-The included llama.cpp examples share a **`[llama.cpp] Prefill Profile`** with **Custom / `n_batch=1024` / `n_ubatch=0` / `image_min_tokens=0` / `image_max_tokens=0`**. `n_batch=1024` may improve prompt-processing throughput, but it is **not a 32 GB VRAM requirement** or a universal performance guarantee. `n_ubatch=0` and the image token zeroes mean no explicit overrides. If your model or GPU has memory problems, try **`n_batch=512`**, a shorter context, or a smaller model. The profile affects llama.cpp's prompt processing, not the Director's image size limit or the maximum generated output tokens.
+**llama.cpp setup in brief:** The example uses the current Model Profile, Create Native Session and Generate nodes, with separate Model and Prefill Profiles for both passes. Install the supported multimodal llama-cpp-python fork as described by the nodepack. Configure the GGUF, projector and context on each Create Native Session node; keep `session_unload` enabled on both Generate nodes. Install [ComfyUI-llama-multimodal](https://github.com/craftingmod/ComfyUI-llama-multimodal) separately and follow its runtime and GPU setup instructions. GGUF downloads are available from model publishers and quantizers such as [mradermacher](https://huggingface.co/mradermacher/models). Place models under `ComfyUI/models/LLM/` or configure an additional LLM path, then refresh/restart ComfyUI.
 
-Install the external llama.cpp nodepack separately and select your own **GGUF** and matching vision projector **`mmproj`** in Generate #1; use `[none]` for Generate #2's projector. Place models under `ComfyUI/models/LLM/` and restart ComfyUI after adding them. The example does not ship model files or OBVPM's Pro workflow.
+- **Pass #1:** vision-capable GGUF + matching `mmproj`; start with `n_ctx=8192`. Increase only when the full request needs more context and memory allows.
+- **Pass #2:** text GGUF, `mmproj=[none]`. Choose a model-specific profile independently for each pass (e.g. a Gemma-compatible profile/handler vs Qwen 3.5+ Non-thinking); disable thinking where supported for clean structured outputs.
+- **Prefill / hardware:** start with `n_batch=1024` (try 512 if memory is tight), `n_ubatch=0`, image token limits at 0 (no explicit override). Adjust GPU layers and KV-cache types for your actual memory budget. These are starting points, not VRAM requirements. Director vision scaling is independent of prefill.
+
+See the [official llama.cpp multimodal guide](https://github.com/ggml-org/llama.cpp/blob/master/tools/mtmd/README.md). The Core example also contains a short Markdown setup note inside the subgraph. Neither GGUF models nor OBVPM Pro workflows are bundled.
 
 ### 3. Add references and describe the shot
 
-Connect your characters, environments, and objects to the Request Builder's **Picture** inputs. The current UI supports up to **nine numbered Picture inputs**, adding slots as needed. Write the action and desired camera behavior in **Direction**. The fixed `pin_specs`, media, `length`, `duration_seconds`, `hunting`, and `hunt_count` sockets remain above the dynamic Picture inputs so image expansion does not shift existing timeline connections.
+Connect your characters, environments, and objects to the Request Builder's **Picture** inputs. The current UI supports up to **nine numbered Picture inputs**, adding slots as needed. Write the action and desired camera behavior in **Direction**. The Request Builder preserves existing serialized socket indices. Additional Picture sockets are appended as needed, without moving or removing saved sockets; ComfyUI owns the connectable `duration_seconds` widget lifecycle.
 
 The vision pass resolves picture roles automatically. For precise or ambiguous assignments, use the optional `reference_roles` field:
 
@@ -121,13 +132,15 @@ In standalone mode, edit the `duration_seconds` widget or connect an optional **
 
 ### 4. Analyze, compose, and approve
 
-Execute the **Shot Editor output**, review the visual analysis and prompt, and check the validator feedback. The Analysis Snapshot and Shot Editor can materialize their text into the saved ComfyUI workflow.
+Select **DIRECT** in Shot Editor, review the prompt, and check Director Status in Core. The status indicates basic graph compatibility and validation; it is not a version-aware backend compatibility checker or a guarantee of video quality. The Analysis Snapshot and Shot Editor can materialize their text into the saved ComfyUI workflow.
 
-- **Re-analyze:** refresh visual/semantic analysis and compose a new prompt.
-- **Recompose (keep analysis):** generate another prompt from the same saved analysis, for example with different Generate #2 settings.
+- **Re-analyze (Core):** invalidate the saved analysis and downstream shot; the next DIRECT refreshes both passes.
+- **Pass #1 Direction (Core):** inspect the compact preview or select View Pass #1 Direction to read the captured Analyst action, performance, coordination, camera and sound plan without the reference inventory or Subject definitions. No additional inference; an unfrozen snapshot is explicitly marked as previous/pending refresh.
+- **View Status (Core):** open the captured validator report and basic wiring/snapshot diagnostics without running inference. `PASS · repaired` means the final validation passed after deterministic normalization; remaining failures stay `FAIL`, warnings stay `WARNING`. An environment correctly bound to its Picture in Subject definitions but not explicitly cited in shot prose is advisory; missing or incorrect source bindings remain errors. Saved or edited prompts are explicitly distinguished from current validation.
+- **Recompose (keep Pass #1):** generate another prompt from the same saved analysis, for example with different Generate #2 settings.
 - **Materialized Shot Editor:** reuse the approved prompt for seed comparisons and repeated generation.
 - **▶ DIRECT (Shot Editor):** targeted execution of the current Shot Editor and its required dependencies only. If the editor was materialized, the button releases its freeze before the targeted run; a separately materialized Analysis Snapshot stays frozen. This is not a full workflow Run and does not deliberately launch H3 generation or Seed Hunt. The integrated frontend queue guard restores the partial-execution target if an extension drops it and silently suppresses duplicate submissions during the targeted request.
-- **Reset Director Context:** clear stored Director analysis and shot text when starting a different project from a copied workflow. The Recipe Prompt maintains its own saved text.
+- **Reset Director Context (Core):** clear stored Director analysis and shot text when starting a different project from a copied workflow. The Recipe Prompt maintains its own saved text.
 
 ## OBVPM Recipe integration
 
@@ -135,11 +148,11 @@ With OBVPM Timeline 0.5.2, a **H3 Director Recipe Prompt (obvpm)** node holds th
 
 <img src="docs/images/obvpm-director-recipe-prompt.png" alt="H3 Director Recipe Prompt in its dedicated restore group" width="420">
 
-The [portable Director workspace](examples/H3-Director-Portable-Workspace.json) keeps these responsibilities in two groups:
+The [Core workspace](examples/H3-Director-Core-Workspace.json) keeps these responsibilities separate:
 
 | ComfyUI group | Contents | Role |
 |---|---|---|
-| `Director Workspace (no auto-sync)` | Request Builder, both Generate passes, Analysis Snapshot, Validator, Shot Editor | Current shot development |
+| `Director Inputs` and the adjacent Core / Shot Editor | Flavour, Request Builder, native Core subgraph, Shot Editor | Current shot development; outside `[restore]` |
 | `Director Prompt [restore]` | `H3 Director Recipe Prompt (obvpm)` | Shot-specific prompt restored by OBVPM |
 
 Keep **only the Recipe Prompt node** inside a group whose title contains `[restore]`. Connect the Recipe Prompt's `prompt` output **directly** to the H3 conditioning prompt input in your OBVPM generation workflow. OBVPM can then capture the approved text with the queued take.
@@ -148,7 +161,7 @@ Keep **only the Recipe Prompt node** inside a group whose title contains `[resto
 
 1. **Choose a new NEXT RUN.** A fresh Extend, Prepend, or Bridge reservation—or the next Root after a newly appended Root take—prepares a new Recipe destination and releases the Director's analysis/shot freeze gates. Existing shot states remain available in their respective timeline records.
 2. **Queue the Director.** Run the two-pass Director branch and materialize the approved prompt in Shot Editor. For a fresh reservation with exactly one Recipe Prompt node and an empty Recipe field, the completed prompt is copied there automatically.
-3. **Review the Recipe.** Edit the literal text directly, or select **Apply approved prompt to Recipe** in Shot Editor to transfer a chosen version. Automatic transfer operates on an empty Recipe field; manual Apply lets you deliberately replace its contents.
+3. **Review the Recipe.** Edit the literal text directly, or select **Apply approved prompt to Recipe** in Shot Editor to transfer a chosen version. Automatic transfer operates on an empty Recipe field; manual Apply lets you deliberately replace its contents. Apply turns green when the editor is frozen, its prompt is non-empty and a Recipe destination exists.
 4. **Queue H3 generation.** Once the Recipe contains the desired text, run your H3/OBVPM generation workflow. OBVPM records the literal prompt with the queued take.
 
 The **two-stage queue sequence** gives you an opportunity to approve the direction before video generation. For Seed Hunt, materialize a single prompt and keep its Recipe text fixed while trying different seeds. The optional Request Builder `hunting` and `hunt_count` inputs accept OBVPM Unbundle diagnostics; **they do not control or disable OBVPM Hunt**. A regular ComfyUI **Full Run** follows OBVPM's own generation/Seed Hunt rules.
@@ -161,7 +174,7 @@ Selecting historical clips restores their saved Recipe prompts through OBVPM whi
 
 **Extend, Prepend, Bridge.** The Director uses OBVPM's START boundary for Extend, TARGET boundary for Prepend, and both endpoints for Bridge. Boundary frames provide visual context; H3 Picture numbers continue to identify the explicit reference inputs. Stable people, settings, and spatial relationships carry forward as new action unfolds.
 
-**Dialogue authority.** Exact lines supplied in Direction retain their wording and order. When you explicitly request new spoken lines, the Director can compose them. Speaker-attributed text such as `Alex says: "..."` helps preserve the correct voice assignment.
+**Dialogue authority.** Exact lines supplied in Direction retain their wording and order. When you explicitly request new spoken lines, the Director can compose them. Speaker-attributed text such as `Alex says: "..."` helps preserve the correct voice assignment. Explicitly shared lines (e.g. `Alex and Sam exclaim in unison: "Cheers!"`) are expanded into separate canonical dialogue events when both speakers are unambiguously reference-backed; ambiguous collective bindings are reported instead of guessed. Timing itself remains a model-dependent performance instruction. The live Vocal Event Normalizer shares a delivery vocabulary with Dialogue Authority and can restore missing speaker IDs and canonical dialogue tags when the already-staged words, speaker, language and ordering are unambiguous. It leaves changed or omitted words, unresolved attribution and unbalanced tags for validation; it never rewrites frozen edits.
 
 **POV.** The reserved `viewer` represents the first-person camera viewpoint. Hands, arms, and direct physical interaction can be described from that viewpoint. Camera distance and perspective follow your current Direction and established scene context.
 
@@ -169,11 +182,23 @@ Selecting historical clips restores their saved Recipe prompts through OBVPM whi
 
 **Validation.** The validator checks H3 structure, reference assignments, dialogue attribution, and continuity contracts. Its diagnostics help you catch inconsistencies before approving a shot. Visual quality and motion remain dependent on the generation model and settings.
 
+## Known limitations
+
+- The Core status checks basic wiring and captured prompt validation, not backend versions or generated video quality. Review remaining warnings or failures before applying an approved prompt.
+- If a particular ComfyUI reload restores the materialized switch but not its saved analysis text, turn off materialization or use **Re-analyze**, then run DIRECT again. The snapshot serialization fix has automated regression coverage; persistence across all frontend versions and OBVPM restore paths is not certified.
+- A detail image of a known character can still be retained as an extra Subject in one reference-authority regression case. Prefer explicit ownership (e.g. `the hands of Alex`) and inspect the reference bindings before approval.
+- Simultaneous speech is model-dependent; separate correctly attributed dialogue events do not guarantee overlapping audio.
+- The full Director Context is currently workflow-local. OBVPM's separate Recipe Prompt restore mechanism remains available; per-timeline/per-version Director Context storage is planned, not implemented.
+
+See [ROADMAP.md](ROADMAP.md) for follow-up work.
+
 ## Workflows and compatibility
 
 - **ComfyUI / Python:** Python 3.10+ with suitable external vision and text Generate nodes.
 - **Example backend:** `ComfyUI-llama-multimodal` llama.cpp with local model and hardware configuration; other compatible backends can be connected.
 - **OBVPM integration:** Recipe synchronization and timeline continuity were developed with **OBVPM Timeline 0.5.2**.
-- **Example workflows:** [H3 Director — Portable Workspace](examples/H3-Director-Portable-Workspace.json) is the recommended starting point. The older [Analysis / Freeze / Recompose example](examples/H3-Director-Analysis-Freeze-Recompose.json) is retained as a reference for the original workflow layout.
+- **Example workflow:** [H3 Director Core Workspace](examples/H3-Director-Core-Workspace.json). The older flat examples are superseded. Existing saved workflows are not deleted.
+- **Upgrade from v0.6.3:** install the current llama.cpp nodepack for the bundled example; copy the new workspace, configure both sessions and reset/re-analyze old snapshots. The Flavour input is now required.
+- **Video tutorial (previous UI):** [Original OBVPM integration walkthrough](https://youtu.be/jMFrAsUYXUQ). The current Core layout and native sessions supersede its Director setup screens.
 
 **[MIT License](LICENSE)** · **[Release notes](RELEASE_NOTES.md)** · **[Changelog](CHANGELOG.md)**

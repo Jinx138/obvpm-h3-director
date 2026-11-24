@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+let ext;const app={registerExtension(e){ext=e;}};
+const ctx={app};vm.createContext(ctx);vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/director_version_metadata.js'),'utf8').replace(/^import .*\n/,''),ctx);
+const recipe={type:'H3DirectorRecipePrompt',properties:{ver:'0.6.4.dev11'},widgets_values:['unchanged']};
+const status={comfyClass:'H3DirectorStatus',properties:{ver:'0.6.4.dev12'}};
+const foreign={type:'SomeOtherNode',properties:{ver:'0.6.4.dev12'}};
+const valid={type:'H3DirectorShotState',properties:{ver:'0.6.4-dev.14'}};
+const wrongPack={type:'H3DirectorShotState',properties:{cnr_id:'other-pack',ver:'0.6.4.dev12'}};
+const created={type:'H3DirectorFlavour',properties:{ver:'0.6.4.dev14'}};
+app.graph={_nodes:[recipe,{subgraph:{_nodes:[status,foreign,valid,wrongPack]}}]};
+ext.afterConfigureGraph();ext.nodeCreated(created);ext.loadedGraphNode(recipe);
+assert.equal(recipe.properties.ver,'0.6.4-dev.11');assert.deepEqual(recipe.widgets_values,['unchanged']);
+assert.equal(status.properties.ver,'0.6.4-dev.12');assert.equal(created.properties.ver,'0.6.4-dev.14');
+assert.equal(foreign.properties.ver,'0.6.4.dev12');assert.equal(wrongPack.properties.ver,'0.6.4.dev12');assert.equal(valid.properties.ver,'0.6.4-dev.14');
+console.log('PASS: narrow version migration, nested Core, existing state untouched');

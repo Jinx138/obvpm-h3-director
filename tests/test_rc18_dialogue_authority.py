@@ -1,4 +1,5 @@
 """rc18 dialogue-source-of-truth regressions; synthetic names only."""
+from fixture_flavour import NEUTRAL_FLAVOUR, neutral_manifests
 import copy
 import importlib.util
 import json
@@ -42,7 +43,7 @@ def analyst(utterances=None, speech_mode='preserve'):
 
 
 def context(direction=DIRECTION):
-    return json.dumps({
+    return json.dumps({"director_flavour": NEUTRAL_FLAVOUR, "director_skill_manifests": neutral_manifests(),
         'direction': direction, 'picture_slots': [1, 2, 3], 'duration_seconds': 5.2,
         'reference_roles': {'direction_bindings': {}, 'user_overrides': {}},
         'operation': 'new', 'continuity_states': {},
@@ -100,7 +101,7 @@ class TestDialogueAuthority(unittest.TestCase):
             'Bryn smiles and replies: "It is ready now." Then Bryn closes the box.'
         )
         builder = nodes.H3DirectorRequestBuilder()
-        ctx = json.loads(builder.build(direction, 11.0)["result"][3])
+        ctx = json.loads(builder.build(direction, 11.0, flavour_profile=NEUTRAL_FLAVOUR)["result"][3])
         self.assertEqual(ctx['duration_seconds'], 11.0)
         self.assertEqual(ctx['authoritative_dialogue']['utterances'], [
             'Aster: Is it ready?', 'Bryn: It is ready now.',
@@ -138,7 +139,7 @@ class TestDialogueAuthority(unittest.TestCase):
 
     def test_request_builder_persists_user_authority_without_new_outputs(self):
         b = nodes.H3DirectorRequestBuilder()
-        result = b.build(DIRECTION, 5.2)["result"]
+        result = b.build(DIRECTION, 5.2, flavour_profile=NEUTRAL_FLAVOUR)["result"]
         ctx = json.loads(result[3])
         self.assertEqual(ctx['authoritative_dialogue']['utterances'], ['Aster: What is that?', 'Bryn: A small planet.'])
         self.assertEqual(ctx['authoritative_dialogue']['authority'], 'user_direction')
@@ -210,12 +211,154 @@ class TestDialogueAuthority(unittest.TestCase):
         result = self.validated(h3(marked=True, flipped_subjects=True), json.loads(norm), ctx)
         self.assertIn('attributed to <Subject 2> but user-authorized speaker', result[3])
 
+    def collective(self, direction=None, extra_man=False):
+        direction = direction or ('The two men sit one sofa with a glass of champagne, '
+                                  'salute to each other and then to the camera and exclamate '
+                                  '"Congratulations to version 0.6.4!"')
+        raw = analyst([], speech_mode='none')
+        raw['intent']['speech_request']['required'] = False
+        raw['intent']['dialogue_plan'] = 'Both speak in unison, overlapping naturally.'
+        raw['subjects'][0]['description'] = 'Aster: older man, glasses'
+        raw['subjects'][1]['description'] = 'Bryn: younger man, dark hair'
+        if extra_man:
+            raw['subjects'].append({'subject': 3, 'source_pictures': [3], 'kind': 'person', 'name': 'Casey', 'description': 'A man'})
+            raw['asset_analysis'][2] = {'picture': 3, 'primary_role': 'character', 'label': 'Casey', 'description': 'A man'}
+        return self.composed(raw, direction)
+
+    def test_collective_exclamate_recovers_exact_user_line(self):
+        _, composer, norm, ctx, _ = self.collective()
+        expected = [dict(speaker=f'<Subject {n}>', text='Congratulations to version 0.6.4!',
+                         shared_line=1, delivery='simultaneous') for n in (1, 2)]
+        speech = json.loads(norm)['intent']['speech_request']
+        self.assertEqual(speech['utterances'], expected)
+        self.assertTrue(speech['required'])
+        self.assertEqual(speech['authority'], 'user_direction')
+        self.assertEqual(json.loads(ctx)['authoritative_dialogue']['utterances'],
+                         ['The two men: Congratulations to version 0.6.4!'])
+        self.assertIn('Event 1: <Subject 1> (S1)', composer)
+        self.assertIn('Event 2: <Subject 2> (S2)', composer)
+        self.assertIn('Deliver in unison', composer)
+        self.assertIn('Never replace a spoken event', composer)
+
+    def test_collective_missing_or_one_voice_is_fail(self):
+        _, _, norm, ctx, _ = self.collective()
+        good = h3(first='Congratulations to version 0.6.4!', second='Congratulations to version 0.6.4!', marked=True)
+        no_speech = good.replace('<d>[English] Congratulations to version 0.6.4!</d>', 'the line')
+        one_voice = good.replace('<Subject 2> (S2) answers, <d>[English] Congratulations to version 0.6.4!</d>', 'The other smiles.')
+        for bad in (no_speech, one_voice):
+            result = self.validated(bad, json.loads(norm), ctx)
+            self.assertTrue(result[3].startswith('FAIL'), result[3])
+            self.assertIn('preserved dialogue differs', result[3])
+        result = self.validated(good, json.loads(norm), ctx)
+        self.assertTrue(result[3].startswith('PASS'), result[3])
+
+    def test_collective_named_and_wrong_attribution(self):
+        _, _, norm, ctx, _ = self.collective('Aster and Bryn exclaim in unison: "Well done!"')
+        good = h3(first='Well done!', second='Well done!', marked=False)
+        result = self.validated(good, json.loads(norm), ctx)
+        self.assertTrue(result[3].startswith('PASS'), result[3])
+        self.assertIn('<Subject 1> (S1)', result[1])
+        self.assertIn('<Subject 2> (S2)', result[1])
+        bad = h3(first='Well done!', second='Well done!', marked=True, flipped_subjects=True)
+        result = self.validated(bad, json.loads(norm), ctx)
+        self.assertIn('user-authorized speaker', result[3])
+
+    def test_ambiguous_collective_does_not_guess(self):
+        _, composer, norm, ctx, _ = self.collective(extra_man=True)
+        speech = json.loads(norm)['intent']['speech_request']
+        self.assertEqual(speech['utterances'], ['The two men: Congratulations to version 0.6.4!'])
+        self.assertEqual(speech['unresolved_collective_speakers'], ['The two men'])
+        self.assertIn('UNRESOLVED collective speaker attribution', composer)
+        result = self.validated(h3(first='Congratulations to version 0.6.4!', marked=True), json.loads(norm), ctx)
+        self.assertIn('unresolved collective dialogue attribution', result[3])
+
+    def test_explicit_unison_survives_missing_analyst_timing(self):
+        raw = analyst([], speech_mode='none')
+        raw['intent']['speech_request']['required'] = False
+        _, composer, norm, _, _ = self.composed(raw, 'Aster and Bryn exclaim in unison: "Well done!"')
+        self.assertEqual([e['delivery'] for e in json.loads(norm)['intent']['speech_request']['utterances']],
+                         ['simultaneous', 'simultaneous'])
+        self.assertIn('Deliver in unison', composer)
+
+    def test_plural_action_cue_and_exclaim(self):
+        self.assertEqual(extract_user_dialogue('Two men sit on a sofa and say "Cheers!"'), ['Two men: Cheers!'])
+        self.assertEqual(extract_user_dialogue('Aster exclaims: "Amazing!"'), ['Aster: Amazing!'])
+        self.assertEqual(extract_user_dialogue('Both men raise their glasses and exclaim "Cheers!"'), ['Both men: Cheers!'])
+        self.assertEqual(extract_user_dialogue('Aster reads a sign called "Welcome".'), [])
+
+    def test_live_shared_placeholder_from_release_toast(self):
+        direction = 'The two men sit one sofa with a glass of champagne, salute to each other and then to the camera and exclamate "Congratulations to version 0.6.4!"'
+        raw = analyst([], speech_mode='none')
+        raw['subjects'][0]['description'] = 'Older man with glasses'
+        raw['subjects'][1]['description'] = 'Younger man with dark hair'
+        raw['intent']['speech_request']['language'] = 'English'
+        raw['intent']['dialogue_plan'] = 'The line is spoken in unison, overlapping naturally as a shared exclamation.'
+        system, composer, norm, ctx, _ = self.composed(raw, direction)
+        self.assertIn('MANDATORY CURRENT-SHOT DIALOGUE CONTRACT', system)
+        self.assertIn('<Subject 2> (S2) says, <d>[English] Congratulations to version 0.6.4!</d>', system)
+        prompt = h3().replace('Short conversation.', 'A toast while exclaiming "Congratulations to version 0.6.4!".')
+        begin = prompt.index('[Shot 1] They sit')
+        end = prompt.index('\noverall_soundscape:', begin)
+        detail = ('[Shot 1] They sit in the sunny room from <Picture 3>. <Subject 1> and <Subject 2> raise their glasses. '
+                  'Their expressions are bright and joyful as they deliver the line simultaneously with enthusiastic facial expressions. '
+                  'They maintain this pose, holding their glasses up and smiling broadly at the camera.')
+        prompt = prompt[:begin] + detail + prompt[end:]
+        result = self.validated(prompt, json.loads(norm), ctx)
+        self.assertTrue(result[3].startswith('PASS'), result[3])
+        self.assertIn('expanded 2 verbatim', result[3])
+        self.assertEqual(result[1].count('<d>[English] Congratulations to version 0.6.4!</d>'), 2)
+        self.assertIn('They maintain this pose', result[1])
+        result2 = self.validated(result[1], json.loads(norm), ctx)
+        self.assertEqual(result[1], result2[1])
+        # Missing language cannot silently manufacture a language tag.
+        raw['intent']['speech_request']['language'] = ''
+        _, _, norm2, ctx2, _ = self.composed(raw, direction)
+        bad = self.validated(prompt, json.loads(norm2), ctx2)
+        self.assertTrue(bad[3].startswith('FAIL'), bad[3])
+        self.assertNotIn('<d>', bad[1])
+        # Summary-only, missing or multiple speech anchors stay failures.
+        for changed in (prompt.replace('they deliver the line simultaneously', 'they smile'),
+                        prompt.replace('they deliver the line simultaneously', 'they deliver the line simultaneously and they deliver the line simultaneously')):
+            bad = self.validated(changed, json.loads(norm), ctx)
+            self.assertTrue(bad[3].startswith('FAIL'), bad[3])
+            self.assertNotIn('<d>', bad[1])
+
+    def test_shared_speaker_markers_with_participial_vocal_cues(self):
+        _, _, norm, ctx, _ = self.collective(
+            'Both men raise their glasses and exclaim in unison in English: "Well done!"')
+        base = h3(first='Well done!', second='Well done!')
+        original = base.replace('<Subject 1> asks,',
+                                '<Subject 1> lifts his glass, speaking with a slight nod:')
+        original = original.replace('<Subject 2> answers,',
+                                    '<Subject 2> lifts his glass, delivering the line with high energy:')
+        result = self.validated(original, json.loads(norm), ctx)
+        self.assertTrue(result[3].startswith('PASS'), result[3])
+        self.assertIn('inserted 2 unambiguously grounded speaker marker', result[3])
+        self.assertIn('<Subject 1> (S1) lifts', result[1])
+        self.assertIn('<Subject 2> (S2) lifts', result[1])
+        self.assertEqual(result[1].replace(' (S1)', '').replace(' (S2)', ''), original)
+        again = self.validated(result[1], json.loads(norm), ctx)
+        self.assertEqual(again[1], result[1])
+        self.assertTrue(again[3].startswith('PASS'), again[3])
+        # An intervening different actor must not acquire the intended actor's ID.
+        bad = original.replace('<Subject 1> lifts his glass, speaking',
+                               '<Subject 1> watches <Subject 2> speaking')
+        rejected = self.validated(bad, json.loads(norm), ctx)
+        self.assertTrue(rejected[3].startswith('FAIL'), rejected[3])
+        self.assertNotIn('(S1)', rejected[1])
+
+    def test_explicit_shared_dialogue_language_survives_analyst_omission(self):
+        request = authoritative_speech_request('Both men raise their glasses and say in unison in English: "Well done!"', {'language': ''})
+        self.assertEqual(request['language'], 'English')
+        self.assertEqual(request['utterances'], ['Both men: Well done!'])
+        self.assertEqual(request['simultaneous_lines'], [1])
+
     def test_frozen_shot_editor_remains_passthrough(self):
         shot = nodes.H3DirectorShotState()
         manually_edited = h3(first='Own user-authored edit.', marked=True)
         result = shot.store(materialized=True, shot_direction='My edit',
                             shot_h3_prompt=manually_edited, shot_analysis='my edited analysis')
-        self.assertEqual(result, (manually_edited, 'My edit', 'my edited analysis'))
+        self.assertEqual(result, (manually_edited, 'My edit', 'my edited analysis', '', '', ''))
 
 
 if __name__ == '__main__':

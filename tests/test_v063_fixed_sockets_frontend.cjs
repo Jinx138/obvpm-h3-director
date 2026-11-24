@@ -46,7 +46,7 @@ let saved={inputs:[
 const fixed=['pin_specs','audio_in','video_in','length','duration_seconds','hunting','hunt_count'];
 function validate(node,label){
   const actual=node.inputs.map(s=>s.name);
-  assert.deepEqual(actual.slice(0,7),fixed,`${label}: fixed order`);
+  assert.deepEqual(actual.slice(0,saved.inputs.length),saved.inputs.map(s=>s.name),`${label}: preserve serialized slot order`);
   for(const [name,id] of Object.entries(wiring)){
     const slot=node.inputs.find(s=>s.name===name);
     assert.equal(slot?.link,id,`${label}: ${name} link ID`);
@@ -78,5 +78,5 @@ slot.link=null;wiring.picture_3=undefined;delete wiring.picture_3;
 subgraph.links.delete(107);
 node.onConnectionsChange?.(1,node.inputs.indexOf(slot),false,null,slot);flush();
 validate(node,'disconnect picture 3');
-assert(!node.inputs.some(s=>s.name==='picture_4'));
+assert(node.inputs.some(s=>s.name==='picture_4'), 'append-only: disconnect never removes slots');
 console.log('PASS v0.6.3: Map-backed links, nested subgraph reload x6, fixed slot stability');

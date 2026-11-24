@@ -1,7 +1,8 @@
 """Small, deterministic structural and semantic checks for H3 output.
 
-No inference or silent rewriting is performed here.  Failures are returned to
-OBVPM Director's existing optional LLM repair path.
+No inference or silent rewriting is performed here. Findings are returned to
+OBVPM Director's existing optional repair path; advisory findings are
+distinguished from hard failures in the validation report.
 """
 import re
 from .action_fidelity import action_role_checks
@@ -30,6 +31,10 @@ def _section_body(text, section):
     return text[m.end():m.end() + next_heading.start()] if next_heading else text[m.end():]
 
 
+class ValidationWarning(str):
+    """Advisory finding, retaining the existing list-of-strings contract."""
+
+
 def _reference_checks(text, required_picture_bindings):
     problems = []
     definitions = _section_body(text, "subject_definitions")
@@ -51,6 +56,11 @@ def _reference_checks(text, required_picture_bindings):
             except (TypeError, ValueError):
                 continue
         picture_tag = f"<Picture {picture}>"
+        if role == "character" and not subjects:
+            problems.append(
+                f"unresolved character reference: {picture_tag} has no accepted Subject binding; "
+                "provide an explicit owner in reference_roles or re-analyze"
+            )
         required_in_shot = binding.get("required_in_shot", True) is not False
         if subjects:
             for subject in subjects:
@@ -59,17 +69,28 @@ def _reference_checks(text, required_picture_bindings):
                     flags=re.I,
                 )
                 # Optional offscreen environments need not be explicitly defined.
-                if ((required_in_shot or definition is not None)
-                        and (not definition or picture_tag not in definition.group(0))):
+                binding_correct = definition is not None and picture_tag in definition.group(0)
+                if ((required_in_shot or definition is not None) and not binding_correct):
                     problems.append(
                         f"reference binding missing: <Subject {subject}> must cite {picture_tag} "
                         "in subject_definitions"
                     )
-                if role == "environment" and required_in_shot and f"<Subject {subject}>" not in detail:
-                    problems.append(
-                        f"environment <Subject {subject}> from {picture_tag} is defined "
-                        "but not used in detailed_description"
-                    )
+                if (role == "environment" and required_in_shot
+                        and f"<Subject {subject}>" not in detail):
+                    # Correctly defined environment, but its explicit shot citation
+                    # is missing. Report the continuity risk without calling the
+                    # prompt structurally invalid. Missing/wrong source bindings
+                    # above and missing direct reference roles below remain errors.
+                    if binding_correct:
+                        problems.append(ValidationWarning(
+                            f"environment <Subject {subject}> from {picture_tag} is defined "
+                            "but not used in detailed_description"
+                        ))
+                    else:
+                        problems.append(
+                            f"environment <Subject {subject}> from {picture_tag} has an invalid or "
+                            "missing definition and is not used in detailed_description"
+                        )
         elif role in {"environment", "target_perspective", "end_keyframe"} and required_in_shot and picture_tag not in detail:
             problems.append(
                 f"{role} reference missing: cite {picture_tag} in detailed_description "
@@ -101,6 +122,8 @@ def _speech_checks(text, expected_speech=None, speaker_subject_map=None):
         if not marker:
             problems.append(f"dialogue event {event_number} has no preceding (Sx) speaker ID")
         else:
+            if len(marker) != 1:
+                problems.append(f"dialogue event {event_number} has multiple preceding speaker IDs")
             mark = marker[-1]
             speaker_id = int(mark.group(1))
             if speaker_id not in first_seen_ids:
@@ -129,10 +152,18 @@ def _speech_checks(text, expected_speech=None, speaker_subject_map=None):
                     )
         event_subjects.append(event_subject)
         previous_end = match.end()
+    if SPEAKER_RE.search(detail[previous_end:]):
+        problems.append("speaker ID without a following canonical dialogue event")
     if first_seen_ids != list(range(1, len(first_seen_ids) + 1)):
         problems.append("speaker IDs must be assigned (S1), (S2), ... in first-vocal-event order")
 
     request = expected_speech if isinstance(expected_speech, dict) else {}
+    if request.get("language_authority") == "user_direction" and request.get("language"):
+        for i, match in enumerate(matches, 1):
+            if match.group(1).strip().casefold() != str(request["language"]).strip().casefold():
+                problems.append(f"dialogue event {i} uses language [{match.group(1)}], not user-authorized [{request['language']}]")
+    if request.get("unresolved_collective_speakers"):
+        problems.append("unresolved collective dialogue attribution: " + ", ".join(request["unresolved_collective_speakers"]))
     if request.get("required") and str(request.get("mode", "")).casefold() in {"preserve", "invent"}:
         if not matches:
             problems.append("required speech has no canonical <d>[Language] ...</d> vocal events")
@@ -157,6 +188,10 @@ def _speech_checks(text, expected_speech=None, speaker_subject_map=None):
                             else "")
                     expected_subject = speaker_subject_map.get(name.casefold())
                     actual_subject = event_subjects[i]
+                    if isinstance(entry, dict) and entry.get("shared_line") is not None and (expected_subject is None or actual_subject is None):
+                        problems.append(f"shared dialogue event {i + 1} has no grounded individual speaker attribution")
+                    elif expected_subject is not None and actual_subject is None:
+                        problems.append(f"dialogue event {i + 1} has no grounded attribution to user-authorized speaker '{name}'")
                     if (expected_subject is not None and actual_subject is not None
                             and int(expected_subject) != int(actual_subject)):
                         problems.append(
@@ -240,7 +275,12 @@ def validate_h3_prompt(text: str, available_pictures, allowed_subjects=None,
         if str(operation or "new").casefold() in {"extend", "prepend", "bridge"} and "video continuation" not in types:
             problems.append("continuity operation requires 'video continuation' in summary task prefix")
     elif operation is not None:
-        problems.append("summary must start with a canonical [task type] prefix")
+        # A new, source-free text-to-video shot has no applicable reference /
+        # continuation task type. Never label it fictitiously as reference
+        # generation. Keep the existing requirement for reference/continuity.
+        op = str(operation or "new").casefold()
+        if available_pictures or op in {"extend", "prepend", "bridge"}:
+            problems.append("summary must start with a canonical [task type] prefix")
 
     extras = re.findall(r"(?mi)^([a-z_ ]{3,40}):\s*$", text)
     extra_names = [x.strip().lower().replace(" ", "_") for x in extras if x.strip().lower().replace(" ", "_") not in SECTIONS]
@@ -252,4 +292,11 @@ def validate_h3_prompt(text: str, available_pictures, allowed_subjects=None,
 def report(problems):
     if not problems:
         return "PASS — six-section structure, reference bindings and speaker checks passed."
-    return "FAIL\n- " + "\n- ".join(problems)
+    errors = [p for p in problems if not isinstance(p, ValidationWarning)]
+    warnings = [p for p in problems if isinstance(p, ValidationWarning)]
+    parts = []
+    if errors:
+        parts.append("FAIL\n- " + "\n- ".join(errors))
+    if warnings:
+        parts.append("WARNING\n- " + "\n- ".join(warnings))
+    return "\n".join(parts)

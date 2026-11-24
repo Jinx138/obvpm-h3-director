@@ -3,6 +3,7 @@
 No user-owned image, private character name, prompt or OBVPM Pro workflow is
 included in this test module.
 """
+from fixture_flavour import NEUTRAL_FLAVOUR, neutral_manifests
 import importlib.util
 import json
 from pathlib import Path
@@ -41,7 +42,7 @@ def analysis(environment_subject=False):
 
 
 def context():
-    return json.dumps({
+    return json.dumps({"director_flavour": NEUTRAL_FLAVOUR, "director_skill_manifests": neutral_manifests(),
         "direction": "Actor A and Actor B speak in a bright living room.",
         "duration_seconds": 5.2, "picture_slots": [1, 2, 3], "operation": "new",
         "continuity_states": {}, "reference_roles": {"direction_bindings": {}, "user_overrides": {}},

@@ -126,3 +126,21 @@ button(editor, 'Reset Director Context (clear saved state)');
 assert.strictEqual(get(snapshot, 'snapshot_director_context'), '');
 assert.strictEqual(asked, 3);
 console.log('PASS frontend context reset: cancel / snapshot / editor / control / serialization / input preservation');
+
+// Simulate nested Snapshot serializer emitting stale positional/named values.
+const captured = {materialized:true,snapshot_raw_analysis:'{"intent":{"dominant_action":"toast"}}',snapshot_director_context:'{"direction":"toast"}'};
+snapshot.onExecuted({director_analysis_snapshot:[JSON.stringify(captured)]});
+const wire = {widgets_values:[true,'',''],widgets_values_named:{materialized:true,snapshot_raw_analysis:'',snapshot_director_context:''}};
+snapshot.onSerialize(wire);
+assert.deepStrictEqual(JSON.parse(JSON.stringify(wire.widgets_values.slice(0,3))),[true,captured.snapshot_raw_analysis,captured.snapshot_director_context]);
+assert.deepStrictEqual(JSON.parse(JSON.stringify(wire.widgets_values_named)),captured);
+const loaded = new Snapshot(90,{materialized:true,snapshot_raw_analysis:'',snapshot_director_context:''});
+loaded.onConfigure(JSON.parse(JSON.stringify(wire)));
+assert.strictEqual(get(loaded,'snapshot_raw_analysis'),captured.snapshot_raw_analysis);
+assert.strictEqual(get(loaded,'snapshot_director_context'),captured.snapshot_director_context);
+// A later explicitly empty reset must not be resurrected by stale positional data.
+loaded.onConfigure({widgets_values:wire.widgets_values,widgets_values_named:{materialized:false,snapshot_raw_analysis:'',snapshot_director_context:''}});
+assert.strictEqual(get(loaded,'materialized'),false);
+assert.strictEqual(get(loaded,'snapshot_raw_analysis'),'');
+assert.strictEqual(get(loaded,'snapshot_director_context'),'');
+console.log('PASS nested Snapshot named/positional serialization and explicit reset precedence');

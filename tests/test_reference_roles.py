@@ -1,4 +1,5 @@
 """rc14: text-first reference mapping, user correction, persist and safe continuity."""
+from fixture_flavour import NEUTRAL_FLAVOUR
 import importlib.util
 import json
 from pathlib import Path
@@ -39,7 +40,7 @@ class TestReferenceRoles(unittest.TestCase):
         self.assertEqual(parse_overrides("AUTO", [1]), {})
 
     def test_user_direction_prepass_before_vision(self):
-        result = self.builder.build(**self.builder_args)
+        result = self.builder.build(flavour_profile=NEUTRAL_FLAVOUR, **self.builder_args)
         self.assertIn("REFERENCE ROLE PREPASS", result[1])
         self.assertLess(result[1].index("REFERENCE ROLE PREPASS"), result[1].index("CURRENT H3 REFERENCE IMAGE SLOTS") if "CURRENT H3 REFERENCE IMAGE SLOTS" in result[1] else result[1].index("CONNECTED REFERENCE IMAGE SLOTS"))
         ctx = json.loads(result[3])
@@ -48,7 +49,7 @@ class TestReferenceRoles(unittest.TestCase):
         self.assertEqual(len(result[2]), 2)
 
     def test_free_form_user_name_only_from_direction_not_guess(self):
-        _, _, _, ctx, *_ = self.builder.build(**self.builder_args)
+        _, _, _, ctx, *_ = self.builder.build(flavour_profile=NEUTRAL_FLAVOUR, **self.builder_args)
         roles = resolve_reference_roles(json.loads(json.dumps(self.raw)), json.loads(ctx))
         self.assertEqual(roles[0]["label"], "Alex")
         self.assertEqual(roles[0]["source"], "auto: user prompt match")
@@ -58,7 +59,7 @@ class TestReferenceRoles(unittest.TestCase):
     def test_explicit_user_override_wins_and_persists_through_snapshot_and_compose(self):
         input_kwargs = dict(self.builder_args)
         input_kwargs["reference_roles"] = "Picture 1: Alex (character)\nPicture 2: Green Living Room (location)"
-        data = self.builder.build(**input_kwargs)
+        data = self.builder.build(flavour_profile=NEUTRAL_FLAVOUR, **input_kwargs)
         ctx = json.loads(data[3])
         self.assertEqual(ctx["reference_roles"]["user_overrides"]["2"]["label"], "Green Living Room")
         snapshot = nodes.H3DirectorAnalysisSnapshot().snapshot(materialized=False, raw_analysis=json.dumps(self.raw), director_context=data[3])
@@ -77,20 +78,20 @@ class TestReferenceRoles(unittest.TestCase):
         self.assertNotIn("takes off her jacket", json.dumps(saved))
 
     def test_direction_explicit_binding(self):
-        result = self.builder.build(direction="Picture 2 shows living room. Alex is in Picture 1. She moves.", duration_seconds=5.2, picture_1="p1", picture_2="p2")
+        result = self.builder.build(flavour_profile=NEUTRAL_FLAVOUR, direction="Picture 2 shows living room. Alex is in Picture 1. She moves.", duration_seconds=5.2, picture_1="p1", picture_2="p2")
         brief = json.loads(result[3])["reference_roles"]
         self.assertEqual(brief["direction_bindings"]["1"]["label"], "Alex")
         self.assertEqual(brief["direction_bindings"]["2"]["role"], "environment")
         self.assertEqual(brief["direction_bindings"]["2"]["label"], "living room")
 
     def test_unknown_is_not_fabricated(self):
-        data = self.builder.build(direction="POV. A person looks into the lens.", duration_seconds=5.2, picture_1="p1")
+        data = self.builder.build(flavour_profile=NEUTRAL_FLAVOUR, direction="POV. A person looks into the lens.", duration_seconds=5.2, picture_1="p1")
         roles = resolve_reference_roles({"asset_analysis": [{"picture": 1, "primary_role": "unknown", "description": "ambiguous collage"}]}, json.loads(data[3]))
         self.assertEqual(roles[0]["role"], "unknown")
         self.assertEqual(roles[0]["source"], "unresolved")
 
     def test_old_workflow_works_without_new_optional_widget(self):
-        data = self.builder.build(direction="Hello", duration_seconds=5.2, picture_1="p1")
+        data = self.builder.build(flavour_profile=NEUTRAL_FLAVOUR, direction="Hello", duration_seconds=5.2, picture_1="p1")
         self.assertIn("picture_slots", data[3])
         self.assertIn("reference_roles", nodes.H3DirectorRequestBuilder.INPUT_TYPES()["required"])
 

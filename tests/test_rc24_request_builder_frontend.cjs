@@ -16,7 +16,13 @@ class Node {
   constructor() {
     this.inputs = [
       {name:'pin_specs',type:'OBVPM_H3_PINSPECS',link:null},
-      ...Array.from({length:4}, (_,i)=>({name:`picture_${i+1}`,type:'IMAGE',link:null})),
+      {name:'audio_in',type:'AUDIO',link:null},
+      {name:'video_in',type:'VIDEO',link:null},
+      {name:'length',type:'*',link:null},
+      {name:'duration_seconds',type:'FLOAT',link:null},
+      {name:'hunting',type:'*',link:null},
+      {name:'hunt_count',type:'*',link:null},
+      {name:'picture_1',type:'IMAGE',link:null},
     ];
     this.widgets = [
       {name:'direction',value:'Direction...',options:{}},
@@ -89,7 +95,7 @@ assert.strictEqual(newSaved.widgets.find(w=>w.name==='duration_seconds').value,1
 assert.strictEqual(newSaved.widgets.find(w=>w.name==='reference_roles').value,'Picture 2: room (location)');
 
 // Configure an old rc23 node with a sparse connected picture_4; its link
-// must be reindexed when audio/video sockets appear before it.
+// must retain its saved index when missing sockets are appended.
 const legacy=new Node();
 legacy.inputs=[
   {name:'pin_specs',type:'OBVPM_H3_PINSPECS',link:null},
@@ -102,13 +108,13 @@ assert(legacy.inputs.some(s=>s.name==='picture_4' && s.link===44));
 assert.strictEqual(legacy.inputs.find(s=>s.name==='pin_specs').type, '*');
 assert(legacy.inputs.some(s=>s.name==='picture_5' && s.link===null));
 assert(!legacy.inputs.some(s=>s.name==='picture_6'));
-assert.strictEqual(graph.links[44][4],10);
+assert.strictEqual(graph.links[44][4],4); // serialized socket index is preserved
 
-// Unlinking 2 removes only the trailing empty 3 while retaining connected 1.
+// Unlinking 2 keeps trailing empty 3 and retains connected 1.
 node.inputs.find(s=>s.name==='picture_2').link=null;
 node.onConnectionsChange(1,4,false,null,node.inputs[4]);
 flush();
-assert(!node.inputs.some(s=>s.name==='picture_3'));
+assert(node.inputs.some(s=>s.name==='picture_3')); // append-only: retain slot
 assert(node.inputs.some(s=>s.name==='picture_2'));
 // New native widget order puts duration below both text areas.
 assert.strictEqual(node.widgets[2].value,5.2);
@@ -161,7 +167,7 @@ for (const id of [201,202,203,204,205,206])
   graph.links[id] = {target_slot:0};
 for (let i=0;i<6;i++) saved=reload(saved,i);
 assert.deepStrictEqual(saved.inputs.filter(x=>x.link!=null).map(x=>x.name),
-  ['pin_specs','length','duration_seconds','picture_1','picture_2','picture_3']);
+  ['pin_specs','picture_1','picture_2','picture_3','length','duration_seconds']);
 assert.deepStrictEqual(Object.fromEntries(saved.inputs.filter(x=>x.link!=null).map(x=>[x.name,x.link])), {
   pin_specs:201,length:205,duration_seconds:206,
   picture_1:202,picture_2:203,picture_3:204

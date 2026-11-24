@@ -5,6 +5,7 @@ import { app } from "../../scripts/app.js";
 // Only direction + reference_roles are retained, never image or model data.
 const HISTORY_PROPERTY = "director_request_history_v1";
 const HISTORY_LIMIT = 100;
+const HISTORY_ROW_HEIGHT = 20; // standard one-line ComfyUI control height
 
 function widgetsPair(node) {
     const widget = name => node.widgets?.find(w => w.name === name)?.value;
@@ -175,13 +176,46 @@ function addHistoryButton(node, name, handler) {
     if (w) w.options = {...(w.options || {}), serialize: false};
 }
 
+// DOM rows allow two genuine independent buttons at every node width.
+// Older frontends without addDOMWidget retain the four native buttons.
+function addHistoryRow(node, name, actions) {
+    if (typeof node.addDOMWidget !== "function" || typeof document === "undefined") return false;
+    const row = document.createElement("div");
+    const h = HISTORY_ROW_HEIGHT;
+    // Constrain both the graph layout and the actual HTML element. A CSS grid
+    // with stretch alignment alone can expand to fill the DOM overlay's slot.
+    row.style.cssText = `display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:${h}px;gap:4px;width:100%;height:${h}px!important;min-height:${h}px!important;max-height:${h}px!important;flex:0 0 ${h}px;box-sizing:border-box;padding:0 10px;align-items:center;align-content:start;overflow:hidden;--comfy-widget-height:${h}px;--comfy-widget-min-height:${h}px;--comfy-widget-max-height:${h}px;`;
+    for (const [label, handler] of actions) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = label;
+        button.style.cssText = `min-width:0;height:${h}px;min-height:0;max-height:${h}px;box-sizing:border-box;padding:0 3px;border:0;border-radius:4px;background:var(--comfy-input-bg,#343434);color:var(--input-text,#ddd);font:12px sans-serif;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+        button.addEventListener("pointerdown", event => event.stopPropagation());
+        button.addEventListener("click", event => { event.stopPropagation(); handler(node); });
+        row.append(button);
+    }
+    const widget = node.addDOMWidget(name,"custom",row,{
+        serialize:false,hideOnZoom:false,margin:0,
+        getMinHeight:()=>h,getMaxHeight:()=>h,getHeight:()=>h,
+    });
+    if (!widget) return false;
+    widget.serialize = false;
+    // Preserve the DOM widget's options object rather than replacing it.
+    if (widget.options) widget.options.serialize = false;
+    return true;
+}
+
 function attachHistory(node) {
     if (node.__directorHistory) return;
     node.__directorHistory = {cursor: -1, draft: widgetsPair(node), applying: false};
-    addHistoryButton(node, "History · Save", save);
-    addHistoryButton(node, "History · Delete", removeSelected);
-    addHistoryButton(node, "History · ◀ Previous", previous);
-    addHistoryButton(node, "History · Next ▶", next);
+    if (!addHistoryRow(node,"director_history_navigation",[["◀ Previous",previous],["Next ▶",next]])) {
+        addHistoryButton(node, "History · ◀ Previous", previous);
+        addHistoryButton(node, "History · Next ▶", next);
+    }
+    if (!addHistoryRow(node,"director_history_edit",[["Save",save],["Delete",removeSelected]])) {
+        addHistoryButton(node, "History · Save", save);
+        addHistoryButton(node, "History · Delete", removeSelected);
+    }
     const label = node.addWidget("text", "director_history_status", "", null,
         {serialize: false, readOnly: true});
     if (label) {

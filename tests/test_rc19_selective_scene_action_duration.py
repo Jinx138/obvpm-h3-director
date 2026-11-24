@@ -2,6 +2,7 @@
 
 Synthetic reference names; no OBVPM Pro workflows or private user media.
 """
+from fixture_flavour import NEUTRAL_FLAVOUR, neutral_manifests
 import importlib.util
 import json
 from pathlib import Path
@@ -18,7 +19,7 @@ from h3_prompt_composer_rc19_tests import nodes
 from h3_prompt_composer_rc19_tests.action_fidelity import (
     explicit_pin_roles, action_role_checks,
 )
-from h3_prompt_composer_rc19_tests.validator import validate_h3_prompt
+from h3_prompt_composer_rc19_tests.validator import validate_h3_prompt, report, ValidationWarning
 
 
 def environment_bindings(scale, direction='The two move on the floor.'):
@@ -52,13 +53,13 @@ class TestDurationPassthrough(unittest.TestCase):
     def test_requested_duration_stays_in_context_without_redundant_output(self):
         b = nodes.H3DirectorRequestBuilder
         inputs = b.INPUT_TYPES()
-        self.assertEqual(list(inputs['required']), ['direction', 'reference_roles', 'duration_seconds'])
+        self.assertEqual(list(inputs['required']), ['flavour_profile', 'direction', 'reference_roles', 'duration_seconds'])
         self.assertEqual(inputs['required']['duration_seconds'][0], 'FLOAT')
         self.assertNotIn('timeline_length_frames', inputs['optional'])
         self.assertNotIn('duration_seconds', b.RETURN_NAMES)
         self.assertEqual(len(b.RETURN_NAMES), len(b.RETURN_TYPES))
         self.assertNotIn('H3DirectorDuration', nodes.NODE_CLASS_MAPPINGS)
-        result = b().build('Aster and Bryn move on the carpet.', 5.2)['result']
+        result = b().build('Aster and Bryn move on the carpet.', 5.2, flavour_profile=NEUTRAL_FLAVOUR)['result']
         self.assertEqual(len(result), 6)
         ctx = json.loads(result[3])
         self.assertEqual(ctx['duration_seconds'], 5.2)
@@ -89,6 +90,29 @@ class TestSelectiveEnvironment(unittest.TestCase):
         problems = validate_h3_prompt(h3(visible_room=False), [1, 2, 3],
                                       required_picture_bindings=bindings)
         self.assertTrue(any('environment <Subject 3>' in p for p in problems), problems)
+
+    def test_correctly_bound_environment_missing_in_shot_is_advisory(self):
+        problems = validate_h3_prompt(h3(visible_room=False), [1, 2, 3],
+                                      required_picture_bindings=environment_bindings('wide'))
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIsInstance(problems[0], ValidationWarning)
+        self.assertTrue(report(problems).startswith('WARNING\n- environment'))
+        self.assertNotIn('FAIL', report(problems))
+
+    def test_missing_environment_definition_remains_error(self):
+        problems = validate_h3_prompt(h3(visible_room=False, room_definition=False), [1, 2, 3],
+                                      required_picture_bindings=environment_bindings('wide'))
+        self.assertTrue(report(problems).startswith('FAIL'))
+        self.assertIn('reference binding missing', report(problems))
+
+    def test_warning_does_not_override_dialogue_failure(self):
+        problems = validate_h3_prompt(h3(visible_room=False), [1, 2, 3],
+                                      required_picture_bindings=environment_bindings('wide'),
+                                      expected_speech={'required': True, 'mode': 'preserve', 'utterances': ['Aster: Hello.']})
+        result = report(problems)
+        self.assertTrue(result.startswith('FAIL'))
+        self.assertIn('required speech has no canonical', result)
+        self.assertIn('\nWARNING\n- environment', result)
 
     def test_closeup_explicitly_visible_room_keeps_requirement(self):
         bindings = environment_bindings('close_up', 'Show the room behind Aster.')
@@ -137,7 +161,7 @@ class TestUserActionFidelity(unittest.TestCase):
             ],
             'intent': {'shot_scale': 'medium', 'speech_request': {'mode': 'none', 'required': False}},
         }
-        context = json.dumps({
+        context = json.dumps({"director_flavour": NEUTRAL_FLAVOUR, "director_skill_manifests": neutral_manifests(),
             'direction': self.direction, 'duration_seconds': 5.2,
             'picture_slots': [1, 2], 'operation': 'new',
             'reference_roles': {'direction_bindings': {}, 'user_overrides': {}},

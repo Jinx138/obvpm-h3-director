@@ -14,20 +14,36 @@ from .continuity import (
 )
 from .prompt_skill import (
     SKILL_VERSION,
-    ANALYST_SYSTEM,
-    COMPOSER_SYSTEM,
     REPAIR_SYSTEM,
     analysis_user_prompt,
     composer_user_prompt,
     _delivery_speaker_subject,
+    _delivery_speech_lines,
 )
-from .validator import validate_h3_prompt, report
-from .speaker_ids import normalize_speaker_ids, _named_subjects
-from .dialogue_authority import authoritative_speech_request, enforce_user_dialogue
+from .validator import validate_h3_prompt, report, ValidationWarning
+from .format_repair import normalize_reference_tokens
+from .reference_contract_guard import reconcile_asset_slots, sanitize_actor_bindings
+from .format_contract_repair import normalize_continuity_task_prefix, normalize_single_shot_retention
+from .flavour_skills import (
+    GENRES as FLAVOUR_GENRES, STYLES as FLAVOUR_STYLES,
+    PERFORMANCE as FLAVOUR_PERFORMANCE,
+    INTIMACY_TONES as FLAVOUR_INTIMACY_TONES,
+    make_profile as make_flavour_profile,
+    parse_profile as parse_flavour_profile,
+    compose_system as compose_flavour_system,
+    manifest as flavour_system_manifest,
+)
+
+# H3-DIRECTOR-FLAVOUR-DEV8
+# H3-DIRECTOR-SKILL-ISOLATION-DEV9
+from .speaker_ids import _named_subjects
+from .vocal_events import normalize_vocal_events
+from .dialogue_authority import authoritative_speech_request, enforce_user_dialogue, bind_collective_dialogue, normalize_shared_line_placeholder
 from .action_fidelity import explicit_pin_roles
 from .reference_roles import (
     make_reference_brief, resolve_reference_roles, enrich_context, status_summary,
 )
+from .reference_bindings import reconcile_subject_references
 from .contracts import (
     DIRECTOR_CONTEXT_SCHEMA,
     DIRECTOR_CONTEXT_SCHEMA_VERSION,
@@ -67,6 +83,17 @@ def _extract_json_tolerant(text):
     if not isinstance(obj, dict):
         raise ValueError("Analysis JSON root must be an object")
     tail = s[end:].strip()
+    # A small number of VLM backends occasionally append ONE additional
+    # closing brace after a fully decoded JSON root. The parsed object is
+    # already complete, so discard only that exact trailing token. Keep
+    # rejecting multiple objects, truncated roots and all other structural
+    # trailing data (including two or more redundant closing braces).
+    if tail == "}":
+        print(
+            "[H3 Director] Analysis JSON normalized: "
+            "removed one redundant trailing closing brace."
+        )
+        tail = ""
     if any(ch in tail for ch in "{}[]"):
         raise ValueError("Analysis JSON has trailing structured data; expected one complete object")
     return obj
@@ -120,9 +147,12 @@ def _required_picture_bindings(picture_roles, subjects, intent=None, direction="
         picture = int(item["picture"])
         role = str(item.get("role") or "unknown")
         subjects_for_picture = sorted(set(by_picture.get(picture, [])))
-        if subjects_for_picture or role in {"environment", "target_perspective", "end_keyframe"}:
+        if subjects_for_picture or role in {"character", "environment", "target_perspective", "end_keyframe"}:
             binding = {"picture": picture, "role": role, "subjects": subjects_for_picture}
-            if role == "environment" and tight_crop and not force_location:
+            if role == "character" and not subjects_for_picture:
+                binding["unresolved_subject"] = True
+            if (role == "environment" and tight_crop and not force_location
+                    and str(item.get("source") or "") not in {"user override", "user prompt"}):
                 binding["required_in_shot"] = False
             requirements.append(binding)
     return requirements
@@ -262,6 +292,54 @@ def _context_load(raw):
         return {}
 
 
+class H3DirectorFlavour:
+    """Required production selection for both Director passes.
+
+    Genre and directing style are independent, and the selected profile is
+    frozen in the Director Context alongside Generate #1 analysis.
+    """
+    CATEGORY = "obvpm/director"
+    FUNCTION = "render"
+    RETURN_TYPES = ("DIRECTOR_FLAVOUR",)
+    RETURN_NAMES = ("flavour_profile",)
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "genre": (list(FLAVOUR_GENRES), {
+                "default": "auto", "tooltip":
+                    "World/genre module: Auto, contemporary, science fiction or fantasy. "
+                    "Independent of the directing style."
+            }),
+            "directing_style": (list(FLAVOUR_STYLES), {
+                "default": "general", "tooltip":
+                    "Selected directing skill. Only this style's analyst/composer modules "
+                    "are loaded; style does not override user Direction."
+            }),
+            "performance": (list(FLAVOUR_PERFORMANCE), {
+                "default": "adaptive", "tooltip":
+                    "Adaptive uses scene-driven acting; restrained emphasizes economy; "
+                    "expressive emphasizes readable, motivated facial and body reactions."
+            }),
+            "intimacy_tone": (list(FLAVOUR_INTIMACY_TONES), {
+                "default": "adaptive", "tooltip":
+                    "Applies only to adult_nsfw directing style: adaptive, tender, playful "
+                    "or passionate. Not a substitute for the actual shot Direction."
+            }),
+            "flavour_notes": ("STRING", {
+                "multiline": True, "default": "", "tooltip":
+                    "Optional creative priorities for the chosen genre/style (max 2000 characters). "
+                    "Subject, reference, dialogue and continuity contracts remain authoritative."
+            }),
+        }}
+
+    def render(self, genre, directing_style, performance, intimacy_tone, flavour_notes):
+        profile = make_flavour_profile(
+            genre, directing_style, performance, intimacy_tone, flavour_notes
+        )
+        return (json.dumps(profile, ensure_ascii=False),)
+
+
 class H3DirectorRequestBuilder:
     """Build the Director analysis request without owning the LLM runtime."""
     CATEGORY = "obvpm/director"
@@ -289,6 +367,10 @@ class H3DirectorRequestBuilder:
         # declared as a required UI widget solely to control its layout.
         return {
             "required": {
+                "flavour_profile": ("DIRECTOR_FLAVOUR", {
+                    "tooltip": "REQUIRED: connect H3 Director Flavour (obvpm). "
+                    "This is a new director architecture; old unwired builders no longer run."
+                }),
                 "direction": ("STRING", {
                     "multiline": True,
                     "default": "the two talk about cars",
@@ -454,12 +536,13 @@ class H3DirectorRequestBuilder:
 
         return summary, state
 
-    def build(self, direction, duration_seconds, pin_specs=None,
+    def build(self, direction, duration_seconds, flavour_profile, pin_specs=None,
               picture_1=None, picture_2=None, picture_3=None, picture_4=None,
               reference_roles="", audio_in=None, video_in=None,
               picture_5=None, picture_6=None, picture_7=None, picture_8=None,
               picture_9=None, total_frames=None, length=None,
               hunting=None, hunt_count=None):
+        flavour = parse_flavour_profile(flavour_profile)
         # Numbered images stay one-based, matching H3 <Picture N> grammar.
         # Noncontiguous older workflows remain valid: never renumber pictures.
         indexed = [
@@ -584,6 +667,7 @@ class H3DirectorRequestBuilder:
         )
 
         context = {
+            "director_flavour": flavour,
             "schema": DIRECTOR_CONTEXT_SCHEMA,
             "schema_version": DIRECTOR_CONTEXT_SCHEMA_VERSION,
             "prompt_policy_version": SKILL_VERSION,
@@ -600,8 +684,17 @@ class H3DirectorRequestBuilder:
         if duration_frames is not None:
             context["duration_source"] = duration_source
             context["duration_frames"] = duration_frames
+        context["director_skill_manifests"] = {
+            "analyst": flavour_system_manifest(flavour, "analyst", operation=operation),
+            "composer": flavour_system_manifest(flavour, "composer", operation=operation),
+        }
         context_json = json.dumps(context, ensure_ascii=False, indent=2)
         continuity_info = json.dumps(continuity, ensure_ascii=False, indent=2)
+        analyst_system = compose_flavour_system(flavour, "analyst", operation=operation)
+        print("[H3 Director] Analyst system: "
+              f"{len(analyst_system)} chars | "
+              f"{len(analyst_system.split())} words | "
+              f"{flavour['genre']} + {flavour['directing_style']}")
         return {
             "ui": {
                 "director_request_history": [
@@ -609,7 +702,7 @@ class H3DirectorRequestBuilder:
                 ],
             },
             "result": (
-                ANALYST_SYSTEM,
+                analyst_system,
                 analysis_prompt,
                 llm_images,
                 context_json,
@@ -830,6 +923,20 @@ class H3DirectorAnalysisCompose:
 
         # The external LLM owns the analysis contents; the Director owns the
         # interchange contract and stamps it deterministically.
+        flavour = parse_flavour_profile(ctx.get("director_flavour"))
+        saved_manifests = ctx.get("director_skill_manifests") or {}
+        for stage in ("analyst", "composer"):
+            expected = (saved_manifests.get(stage) or {}).get("sha256")
+            actual = flavour_system_manifest(
+                flavour, stage, operation=str(ctx.get("operation", "new"))
+            )["sha256"]
+            if not expected or expected != actual:
+                raise ValueError(
+                    "Director skill mismatch for " + stage + ". "
+                    "Unfreeze Analysis Snapshot AND Shot Editor, then run DIRECT "
+                    "with the active dev9 Flavour skills before composing."
+                )
+        analysis_obj["director_flavour"] = flavour
         analysis_obj["schema"] = ANALYSIS_SCHEMA
         analysis_obj["schema_version"] = ANALYSIS_SCHEMA_VERSION
 
@@ -837,6 +944,18 @@ class H3DirectorAnalysisCompose:
         # discretionary Analyst output.  Recover them even if Pass #1 returned
         # mode=preserve with an empty or paraphrased utterances array.
         enforce_user_dialogue(analysis_obj, str(ctx.get("direction", "")))
+
+        # Current user picture-role overrides are resolved BEFORE Subject
+        # source bindings and deterministic obligations are assembled.
+        # dev10d: the vision LLM may use a compact index 1..N despite
+        # actual connected Picture slots 3/4. Move descriptions only when
+        # a unique explicit `(Picture N)` label identifies the real slot.
+        reconcile_asset_slots(analysis_obj, picture_slots)
+        picture_roles = resolve_reference_roles(analysis_obj, ctx)
+        reference_binding_issues = reconcile_subject_references(
+            analysis_obj, ctx, picture_roles)
+        if reference_binding_issues:
+            ctx["reference_binding_issues"] = reference_binding_issues
 
         # Deterministic H3 reference boundary: <Subject N> is a reference label,
         # not a generic character/viewpoint ID. Keep only Subjects that are
@@ -910,7 +1029,6 @@ class H3DirectorAnalysisCompose:
                         if pic_no in available_picture_set:
                             allowed_subject_map.setdefault(subject_no, set()).add(pic_no)
 
-        picture_roles = resolve_reference_roles(analysis_obj, ctx)
         ctx["reference_roles_resolved"] = picture_roles
 
         analysis_obj["reference_contract"] = {
@@ -934,6 +1052,11 @@ class H3DirectorAnalysisCompose:
             "rule": "POV/viewer/camera-holder semantics do not create a Subject; only reference-backed Subject labels are allowed.",
         }
 
+        # dev10d: Actor IDs are independent of H3 Subjects. Reject
+        # invented reference Subjects in text-only performance tracks.
+        sanitize_actor_bindings(analysis_obj)
+        bind_collective_dialogue(analysis_obj, (analysis_obj.get("intent") or {}).get("speech_request"))
+
         # Only extract very specific, user-owned physical-role assertions.
         # Every other movement detail remains the composer's creative freedom.
         analysis_obj["action_contract"] = explicit_pin_roles(
@@ -952,13 +1075,26 @@ class H3DirectorAnalysisCompose:
             continuity_context=ctx.get("continuity_states") or {},
             continuity_note=str(ctx.get("continuity_note", "")),
         )
+        composer_system = compose_flavour_system(flavour, "composer", operation=str(ctx.get("operation", "new")))
+        # Promote only the grounded shared-dialogue delivery contract into the
+        # system message as well as the user prompt. No third inference pass.
+        speech = (analysis_obj.get("intent") or {}).get("speech_request") or {}
+        if speech.get("authority") == "user_direction" and any(
+            isinstance(e, dict) and e.get("shared_line") is not None
+            for e in speech.get("utterances") or []
+        ):
+            composer_system += "\n\nMANDATORY CURRENT-SHOT DIALOGUE CONTRACT:\n" + "\n".join(_delivery_speech_lines(analysis_obj))
+        print("[H3 Director] Composer system: "
+              f"{len(composer_system)} chars | "
+              f"{len(composer_system.split())} words | "
+              f"{flavour['genre']} + {flavour['directing_style']}")
         # Small, non-serialized frontend status (also reflected on the Request Builder).
         return {
             "ui": {"director_reference_status": [json.dumps({
                 "summary": status_summary(picture_roles),
                 "roles": picture_roles,
             }, ensure_ascii=False)]},
-            "result": (COMPOSER_SYSTEM, prompt, analysis_json, stamped_context, status),
+            "result": (composer_system, prompt, analysis_json, stamped_context, status),
         }
 
 
@@ -1002,6 +1138,7 @@ class H3DirectorResponseValidator:
         current_direction = str(ctx.get("direction") or "")
         incoming_speech = (analysis_for_refs.get("intent") or {}).get("speech_request")
         effective_speech = enforce_user_dialogue(analysis_for_refs, current_direction)
+        effective_speech = bind_collective_dialogue(analysis_for_refs, effective_speech)
         # As with user dialogue, the physical actor/target roles originate in
         # the frozen user Direction, NOT in editable/generated Analysis fields.
         # A stale/manual analysis cannot silently change the user's assignment.
@@ -1024,7 +1161,24 @@ class H3DirectorResponseValidator:
         # Live output only: repair missing *unambiguous* vocal source markers
         # before validation and first-time materialization. Frozen Shot Editor
         # text is returned via its independent lazy gate, never through here.
-        prompt, speaker_ids_added = normalize_speaker_ids(prompt, analysis_for_refs)
+        # dev10e: the authoritative Director Context operation determines the
+        # actual H3 summary task prefix. Preserve all other task types and avoid
+        # rewriting narrative content. The strict validator runs afterward.
+        prompt, continuation_prefix_fixed = normalize_continuity_task_prefix(
+            prompt,
+            operation=ctx.get("operation", "new"),
+            connected_picture_slots=picture_slots,
+            required_picture_bindings=(analysis_for_refs.get("reference_contract") or {}).get("required_picture_bindings"),
+        )
+        prompt, retention_markers_fixed = normalize_single_shot_retention(prompt)
+        # dev10c: repair only unambiguous, correctly assigned plain Picture
+        # labels in subject_definitions. Never invent bindings or alter shot prose.
+        prompt, reference_labels_added = normalize_reference_tokens(
+            prompt,
+            (analysis_for_refs.get("reference_contract") or {}).get("required_picture_bindings"),
+        )
+        prompt, shared_lines_added = normalize_shared_line_placeholder(prompt, effective_speech, analysis_for_refs)
+        prompt, dialogue_tags_added, speaker_ids_added = normalize_vocal_events(prompt, analysis_for_refs)
         allowed_subjects = {
             int(item.get("subject"))
             for item in ((analysis_for_refs.get("reference_contract") or {}).get("allowed_subjects") or [])
@@ -1081,9 +1235,24 @@ class H3DirectorResponseValidator:
         )
 
         validation = report(problems)
+        if shared_lines_added:
+            validation += (f"\nAUTO-NORMALIZED — expanded {shared_lines_added} verbatim, individually grounded "
+                           "shared dialogue events at existing vocal placeholders.")
+        if dialogue_tags_added:
+            validation += (f"\nAUTO-NORMALIZED — restored {dialogue_tags_added} canonical dialogue tag(s) "
+                           "for verbatim, locally grounded user speech.")
         if speaker_ids_added:
             validation += (f"\nAUTO-NORMALIZED — inserted {speaker_ids_added} "
                            "unambiguously grounded speaker marker(s); dialogue unchanged.")
+        if reference_labels_added:
+            validation += (f"\nAUTO-NORMALIZED — bracketed {reference_labels_added} "
+                           "unambiguously grounded Picture label(s) in Subject definitions.")
+        if continuation_prefix_fixed:
+            validation += ("\nAUTO-NORMALIZED — corrected continuation summary task prefix "
+                           "from authoritative Director operation and connected references.")
+        if retention_markers_fixed:
+            validation += (f"\nAUTO-NORMALIZED — inserted {retention_markers_fixed} "
+                           "grounded single-shot retention appearance marker(s).")
 
         continuity = ctx.get("continuity") or {}
         notices = []
@@ -1122,7 +1291,8 @@ class H3DirectorResponseValidator:
                 "action_contract": analysis_for_refs.get("action_contract") or [],
             }
             repair_prompt = (
-                "VALIDATION ERRORS:\n- " + "\n- ".join(problems)
+                ("VALIDATION ERRORS:\n- " if any(not isinstance(p, ValidationWarning) for p in problems)
+                 else "VALIDATION WARNINGS:\n- ") + "\n- ".join(problems)
                 + "\n\nAUTHORITATIVE OUTPUT REQUIREMENTS:\n"
                 + json.dumps(repair_authority, ensure_ascii=False, indent=2)
                 + "\n\nPROMPT TO REPAIR:\n" + prompt
@@ -1146,6 +1316,8 @@ class H3DirectorResponseValidator:
 
 
 class H3DirectorShotState:
+    # H3-DIRECTOR-GEN2-TRACE-DEV5
+    # H3-DIRECTOR-DEBUG-REPORT-DEV6
     """Materialized Director shot state for OBVPM Planned Clips.
 
     The Composer inputs are deliberately lazy. While ``materialized`` is false,
@@ -1164,8 +1336,8 @@ class H3DirectorShotState:
     """
     CATEGORY = "obvpm/director"
     FUNCTION = "store"
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("h3_prompt", "direction", "analysis_json")
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("h3_prompt", "direction", "analysis_json", "gen2_thinking", "gen2_raw_json", "validation")
     OUTPUT_NODE = True
 
     @classmethod
@@ -1197,6 +1369,53 @@ class H3DirectorShotState:
                     "default": "",
                     "tooltip": "Saved shot analysis JSON in this editor; editable after capture.",
                 }),
+                "shot_gen2_thinking": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": (
+                        "Persisted Generate #2 thinking. Read-only by convention; "
+                        "use the View saved Thinking button. Stored with the Shot Editor."
+                    ),
+                }),
+                "shot_gen2_raw_json": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": (
+                        "Persisted Generate #2 raw JSON including usage/finish_reason. "
+                        "Read-only by convention; use View saved Raw JSON."
+                    ),
+                }),
+                "shot_validation": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "tooltip": (
+                        "Captured Response Validator.validation for this shot. "
+                        "Included in the materialized Debug Report; optional on older workflows."
+                    ),
+                }),
+            },
+            "optional": {
+                "current_gen2_thinking": ("STRING", {
+                    "forceInput": True, "lazy": True,
+                    "tooltip": (
+                        "OPTIONAL: connect Generate #2 thinking. Captured on the next live "
+                        "Director run; never evaluated while Shot Editor is materialized."
+                    ),
+                }),
+                "current_gen2_raw_json": ("STRING", {
+                    "forceInput": True, "lazy": True,
+                    "tooltip": (
+                        "OPTIONAL: connect Generate #2 raw_json. Captured on the next "
+                        "live Director run; never evaluated while materialized."
+                    ),
+                }),
+                "current_validation": ("STRING", {
+                    "forceInput": True, "lazy": True,
+                    "tooltip": (
+                        "OPTIONAL: connect H3 Director Response Validator.validation. "
+                        "Captured once on DIRECT; never evaluated while frozen."
+                    ),
+                }),
             },
         }
 
@@ -1219,21 +1438,36 @@ class H3DirectorShotState:
             needed.append("current_h3_prompt")
         if current_analysis is None:
             needed.append("current_analysis")
+        # Optional diagnostic sockets are only requested if actually connected.
+        # Missing optional sockets are absent from kwargs; connected unresolved
+        # lazy links are passed as None by ComfyUI.
+        for key in ("current_gen2_thinking", "current_gen2_raw_json", "current_validation"):
+            if key in kwargs and kwargs[key] is None:
+                needed.append(key)
         return needed
 
     def store(self, materialized=False, shot_direction="", shot_h3_prompt="",
               shot_analysis="", current_direction=None, current_h3_prompt=None,
-              current_analysis=None):
+              current_analysis=None, shot_gen2_thinking="", shot_gen2_raw_json="",
+              current_gen2_thinking=None, current_gen2_raw_json=None,
+              shot_validation="", current_validation=None):
         if bool(materialized):
             direction = str(shot_direction or "")
             prompt = str(shot_h3_prompt or "")
             analysis = str(shot_analysis or "")
-            return (prompt, direction, analysis)
+            return (
+                prompt, direction, analysis,
+                str(shot_gen2_thinking or ""), str(shot_gen2_raw_json or ""),
+                str(shot_validation or ""),
+            )
 
         # Capture mode: check_lazy_status has requested the three live values.
         direction = str(current_direction or "")
         prompt = str(current_h3_prompt or "")
         analysis = str(current_analysis or "")
+        thinking = str(current_gen2_thinking or "")
+        raw_json = str(current_gen2_raw_json or "")
+        validation = str(current_validation or "")
         payload = {
             "schema": SHOT_STATE_SCHEMA,
             "schema_version": SHOT_STATE_SCHEMA_VERSION,
@@ -1241,14 +1475,19 @@ class H3DirectorShotState:
             "shot_direction": direction,
             "shot_h3_prompt": prompt,
             "shot_analysis": analysis,
+            "shot_gen2_thinking": thinking,
+            "shot_gen2_raw_json": raw_json,
+            "shot_validation": validation,
         }
         print(
             "[H3 Director Shot State] materialized Composer result: "
-            f"direction={len(direction)} chars, prompt={len(prompt)} chars, analysis={len(analysis)} chars"
+            f"direction={len(direction)} chars, prompt={len(prompt)} chars, "
+            f"analysis={len(analysis)} chars, thinking={len(thinking)} chars, "
+            f"raw_json={len(raw_json)} chars, validation={len(validation)} chars"
         )
         return {
             "ui": {"director_shot_state": [json.dumps(payload, ensure_ascii=False)]},
-            "result": (prompt, direction, analysis),
+            "result": (prompt, direction, analysis, thinking, raw_json, validation),
         }
 
 
@@ -1298,7 +1537,11 @@ class H3DirectorRecipePrompt:
 print(f"[H3 Prompt Composer] prompt skill loaded: {SKILL_VERSION}")
 
 
+from .director_status import H3DirectorStatus
+
 NODE_CLASS_MAPPINGS = {
+    "H3DirectorStatus": H3DirectorStatus,
+    "H3DirectorFlavour": H3DirectorFlavour,
     "H3DirectorRequestBuilder": H3DirectorRequestBuilder,
     "H3DirectorVRAMHandoff": H3DirectorVRAMHandoff,
     "H3DirectorAnalysisSnapshot": H3DirectorAnalysisSnapshot,
@@ -1310,6 +1553,8 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "H3DirectorStatus": "H3 Director Status (obvpm)",
+    "H3DirectorFlavour": "H3 Director Flavour (obvpm)",
     "H3DirectorRequestBuilder": "H3 Director Request Builder (obvpm)",
     "H3DirectorVRAMHandoff": "H3 Director VRAM Handoff (obvpm)",
     "H3DirectorAnalysisSnapshot": "H3 Director Analysis Snapshot (obvpm)",

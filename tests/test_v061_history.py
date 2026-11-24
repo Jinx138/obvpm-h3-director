@@ -1,4 +1,5 @@
 """Request Builder execution-result UI history is separate from H3 prompt data."""
+from fixture_flavour import NEUTRAL_FLAVOUR
 import importlib.util
 import json
 from pathlib import Path
@@ -19,7 +20,7 @@ class HistoryEmissionTests(unittest.TestCase):
         original = "  Aster enters.  \n  "
         roles = "Picture 1: Aster (character)\nPicture 3: room (location)\n"
         image = object()
-        returned = H3DirectorRequestBuilder().build(original, 5.2, reference_roles=roles, picture_1=image)
+        returned = H3DirectorRequestBuilder().build(original, 5.2, flavour_profile=NEUTRAL_FLAVOUR, reference_roles=roles, picture_1=image)
         self.assertEqual(set(returned), {"ui", "result"})
         ui_pair = json.loads(returned["ui"]["director_request_history"][0])
         self.assertEqual(ui_pair, {"direction": original, "reference_roles": roles})
@@ -33,7 +34,7 @@ class HistoryEmissionTests(unittest.TestCase):
     def test_history_metadata_does_not_include_media_or_timeline(self):
         image, audio, video = object(), object(), object()
         returned = H3DirectorRequestBuilder().build(
-            "Aster turns", 5.2, picture_2=image, audio_in=audio, video_in=video,
+            "Aster turns", 5.2, flavour_profile=NEUTRAL_FLAVOUR, picture_2=image, audio_in=audio, video_in=video,
             reference_roles="Picture 2: Aster (character)",
         )
         self.assertEqual(json.loads(returned["ui"]["director_request_history"][0]), {

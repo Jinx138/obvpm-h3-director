@@ -2,6 +2,7 @@
 
 All fixtures are synthetic, without private workflows or video data.
 """
+from fixture_flavour import NEUTRAL_FLAVOUR, neutral_manifests
 import importlib.util
 import json
 from pathlib import Path
@@ -98,7 +99,7 @@ class TestRC23DescriptiveSpeakers(unittest.TestCase):
         )
         direction = ('The younger engineer says: "Is it ready?"\n'
                      'The older engineer in the blue jacket replies: "Everything is ready."')
-        context = json.dumps({'direction': direction, 'picture_slots': [1, 2, 3], 'operation': 'new'})
+        context = json.dumps({"director_flavour": NEUTRAL_FLAVOUR, "director_skill_manifests": neutral_manifests(), 'direction': direction, 'picture_slots': [1, 2, 3], 'operation': 'new'})
         result = H3DirectorResponseValidator().validate(original, json.dumps(analysis()), context)
         self.assertTrue(result[3].startswith('PASS'), result[3])
         self.assertIn('AUTO-NORMALIZED', result[3])
@@ -126,7 +127,7 @@ class TestRC23DescriptiveSpeakers(unittest.TestCase):
                      'The older engineer in the blue jacket replies: "Everything is ready."')
         result = H3DirectorResponseValidator().validate(
             original, json.dumps(analysis()),
-            json.dumps({'direction': direction, 'picture_slots': [1, 2, 3], 'operation': 'new'})
+            json.dumps({"director_flavour": NEUTRAL_FLAVOUR, "director_skill_manifests": neutral_manifests(), 'direction': direction, 'picture_slots': [1, 2, 3], 'operation': 'new'})
         )
         self.assertIn('attributed to <Subject 1>', result[3])
         self.assertIn('attributed to <Subject 2>', result[3])
@@ -209,7 +210,7 @@ class TestRC23DescriptiveSpeakers(unittest.TestCase):
         user_edit = h3('<Subject 2> says, <d>[English] My own words.</d>')
         self.assertEqual(shot.store(materialized=True, shot_direction='Own direction',
                                     shot_h3_prompt=user_edit, shot_analysis='Own notes'),
-                         (user_edit, 'Own direction', 'Own notes'))
+                         (user_edit, 'Own direction', 'Own notes', '', '', ''))
 
 
 if __name__ == '__main__':

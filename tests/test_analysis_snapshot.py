@@ -1,4 +1,5 @@
 """rc12 snapshot: unit-level lazy gating and two-pass interchange regression."""
+from fixture_flavour import NEUTRAL_FLAVOUR, neutral_manifests
 import importlib.util
 import json
 from pathlib import Path
@@ -24,7 +25,7 @@ class TestAnalysisSnapshot(unittest.TestCase):
             "asset_analysis": [],
             "intent": {"dominant_action": "steps forward"},
         })
-        self.ctx = json.dumps({
+        self.ctx = json.dumps({"director_flavour": NEUTRAL_FLAVOUR, "director_skill_manifests": neutral_manifests(),
             "direction": "Subject 1 steps forward",
             "picture_slots": [1], "duration_seconds": 5.2, "operation": "new",
             "continuity_states": {}, "continuity_note": "",
@@ -90,7 +91,7 @@ class TestAnalysisSnapshot(unittest.TestCase):
     def test_cleared_snapshot_captures_fresh_context(self):
         # UI reset clears both saved strings and unfreezes, so no Alex/old
         # context is available to the backend until live inputs are resolved.
-        fresh_ctx = json.dumps({"direction": "New scene in a spaceship",
+        fresh_ctx = json.dumps({"director_flavour": NEUTRAL_FLAVOUR, "director_skill_manifests": neutral_manifests(), "direction": "New scene in a spaceship",
                                 "operation": "new", "picture_slots": [],
                                 "duration_seconds": 5.2, "continuity_states": {}})
         self.assertEqual(

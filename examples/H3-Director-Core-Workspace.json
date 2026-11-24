@@ -1,0 +1,2598 @@
+{
+  "id": "82ba5078-0e8d-41c7-afc6-08273f16349a",
+  "revision": 0,
+  "last_node_id": 20,
+  "last_link_id": 40,
+  "nodes": [
+    {
+      "id": 14,
+      "type": "H3DirectorFlavour",
+      "pos": [
+        0,
+        70
+      ],
+      "size": [
+        480,
+        270
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "genre",
+          "localized_name": "genre",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "genre"
+          }
+        },
+        {
+          "name": "directing_style",
+          "localized_name": "directing_style",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "directing_style"
+          }
+        },
+        {
+          "name": "performance",
+          "localized_name": "performance",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "performance"
+          }
+        },
+        {
+          "name": "intimacy_tone",
+          "localized_name": "intimacy_tone",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "intimacy_tone"
+          }
+        },
+        {
+          "name": "flavour_notes",
+          "localized_name": "flavour_notes",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "flavour_notes"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "flavour_profile",
+          "localized_name": "flavour_profile",
+          "type": "DIRECTOR_FLAVOUR",
+          "links": [
+            24
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.4",
+        "Node name for S&R": "H3DirectorFlavour"
+      },
+      "widgets_values": [
+        "auto",
+        "general",
+        "adaptive",
+        "adaptive",
+        ""
+      ]
+    },
+    {
+      "id": 1,
+      "type": "H3DirectorRequestBuilder",
+      "pos": [
+        0,
+        380
+      ],
+      "size": [
+        480,
+        830
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pin_specs",
+          "name": "pin_specs",
+          "shape": 7,
+          "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "audio_in",
+          "name": "audio_in",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "localized_name": "video_in",
+          "name": "video_in",
+          "shape": 7,
+          "type": "VIDEO",
+          "link": null
+        },
+        {
+          "localized_name": "length",
+          "name": "length",
+          "shape": 7,
+          "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "duration_seconds",
+          "name": "duration_seconds",
+          "type": "FLOAT",
+          "widget": {
+            "name": "duration_seconds"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "hunting",
+          "name": "hunting",
+          "shape": 7,
+          "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "hunt_count",
+          "name": "hunt_count",
+          "shape": 7,
+          "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "picture_1",
+          "name": "picture_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "direction",
+          "name": "direction",
+          "type": "STRING",
+          "widget": {
+            "name": "direction"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "reference_roles",
+          "name": "reference_roles",
+          "type": "STRING",
+          "widget": {
+            "name": "reference_roles"
+          },
+          "link": null
+        },
+        {
+          "name": "flavour_profile",
+          "localized_name": "flavour_profile",
+          "type": "DIRECTOR_FLAVOUR",
+          "link": 24
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "system",
+          "name": "system",
+          "type": "STRING",
+          "links": [
+            17
+          ]
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": [
+            18
+          ]
+        },
+        {
+          "localized_name": "llm_images",
+          "name": "llm_images",
+          "shape": 6,
+          "type": "IMAGE",
+          "links": [
+            3
+          ]
+        },
+        {
+          "localized_name": "director_context",
+          "name": "director_context",
+          "type": "STRING",
+          "links": [
+            7
+          ]
+        },
+        {
+          "localized_name": "current_direction",
+          "name": "current_direction",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "continuity_info",
+          "name": "continuity_info",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.4",
+        "Node name for S&R": "H3DirectorRequestBuilder"
+      },
+      "widgets_values": [
+        "",
+        "",
+        5.2,
+        "",
+        null,
+        null,
+        null,
+        "History: draft · 0 saved",
+        "○ Reference roles: input changed — Re-analyze to refresh"
+      ],
+      "widgets_values_named": {
+        "direction": "",
+        "reference_roles": "",
+        "duration_seconds": 5.2,
+        "History · Save": "",
+        "History · Delete": null,
+        "History · ◀ Previous": null,
+        "History · Next ▶": null,
+        "director_history_status": "History: draft · 0 saved",
+        "director_reference_status": "○ Reference roles: input changed — Re-analyze to refresh"
+      }
+    },
+    {
+      "id": 15,
+      "type": "711e4bd1-f44b-4cf6-987b-2a5cf1d12012",
+      "pos": [
+        560,
+        80
+      ],
+      "size": [
+        400,
+        440
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "system",
+          "type": "STRING",
+          "link": 17
+        },
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "link": 18
+        },
+        {
+          "name": "llm_images",
+          "type": "IMAGE",
+          "link": 3
+        },
+        {
+          "name": "director_context",
+          "type": "STRING",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "current_direction",
+          "type": "STRING",
+          "links": [
+            19
+          ]
+        },
+        {
+          "name": "h3_prompt",
+          "type": "STRING",
+          "links": [
+            20
+          ]
+        },
+        {
+          "name": "analysis_json",
+          "type": "STRING",
+          "links": [
+            21
+          ]
+        },
+        {
+          "name": "validation",
+          "type": "STRING",
+          "links": [
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "obvpm_director_core": true
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 11,
+      "type": "H3DirectorShotState",
+      "pos": [
+        1030,
+        80
+      ],
+      "size": [
+        480,
+        750
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "current_direction",
+          "name": "current_direction",
+          "type": "STRING",
+          "link": 19
+        },
+        {
+          "localized_name": "current_h3_prompt",
+          "name": "current_h3_prompt",
+          "type": "STRING",
+          "link": 20
+        },
+        {
+          "localized_name": "current_analysis",
+          "name": "current_analysis",
+          "type": "STRING",
+          "link": 21
+        },
+        {
+          "localized_name": "materialized",
+          "name": "materialized",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "materialized"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "shot_direction",
+          "name": "shot_direction",
+          "type": "STRING",
+          "widget": {
+            "name": "shot_direction"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "shot_h3_prompt",
+          "name": "shot_h3_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "shot_h3_prompt"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "shot_analysis",
+          "name": "shot_analysis",
+          "type": "STRING",
+          "widget": {
+            "name": "shot_analysis"
+          },
+          "link": null
+        },
+        {
+          "name": "shot_gen2_thinking",
+          "localized_name": "shot_gen2_thinking",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "shot_gen2_thinking"
+          }
+        },
+        {
+          "name": "shot_gen2_raw_json",
+          "localized_name": "shot_gen2_raw_json",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "shot_gen2_raw_json"
+          }
+        },
+        {
+          "name": "shot_validation",
+          "localized_name": "shot_validation",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "shot_validation"
+          }
+        },
+        {
+          "name": "current_gen2_thinking",
+          "localized_name": "current_gen2_thinking",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "current_gen2_raw_json",
+          "localized_name": "current_gen2_raw_json",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "current_validation",
+          "localized_name": "current_validation",
+          "type": "STRING",
+          "link": 27
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "h3_prompt",
+          "name": "h3_prompt",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "direction",
+          "name": "direction",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "localized_name": "analysis_json",
+          "name": "analysis_json",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "gen2_thinking",
+          "localized_name": "gen2_thinking",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "gen2_raw_json",
+          "localized_name": "gen2_raw_json",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "validation",
+          "localized_name": "validation",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.4",
+        "Node name for S&R": "H3DirectorShotState",
+        "director_state_schema": "obvpm.director.shot_state",
+        "director_state_schema_version": 1
+      },
+      "widgets_values": [
+        false,
+        null,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "widgets_values_named": {
+        "materialized": false,
+        "▶ DIRECT": null,
+        "shot_direction": "",
+        "shot_h3_prompt": "",
+        "shot_analysis": "",
+        "shot_gen2_thinking": "",
+        "shot_gen2_raw_json": "",
+        "shot_validation": "",
+        "Reset Director Context (clear saved state)": null,
+        "Apply approved prompt to Recipe": null,
+        "View saved Gen #2 Thinking": null,
+        "View saved Gen #2 Raw JSON": null,
+        "View / Copy Director Debug Report": null,
+        "Recompose (keep analysis)": null
+      }
+    },
+    {
+      "id": 12,
+      "type": "H3DirectorRecipePrompt",
+      "pos": [
+        1580,
+        80
+      ],
+      "size": [
+        480,
+        640
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "prompt_text",
+          "name": "prompt_text",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt_text"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "h3-obvpm-director",
+        "ver": "0.6.4",
+        "Node name for S&R": "H3DirectorRecipePrompt"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "widgets_values_named": {
+        "prompt_text": ""
+      }
+    }
+  ],
+  "links": [
+    [
+      7,
+      1,
+      3,
+      15,
+      3,
+      "STRING"
+    ],
+    [
+      17,
+      1,
+      0,
+      15,
+      0,
+      "STRING"
+    ],
+    [
+      18,
+      1,
+      1,
+      15,
+      1,
+      "STRING"
+    ],
+    [
+      19,
+      15,
+      0,
+      11,
+      0,
+      "STRING"
+    ],
+    [
+      20,
+      15,
+      1,
+      11,
+      1,
+      "STRING"
+    ],
+    [
+      21,
+      15,
+      2,
+      11,
+      2,
+      "STRING"
+    ],
+    [
+      3,
+      1,
+      2,
+      15,
+      2,
+      "IMAGE"
+    ],
+    [
+      24,
+      14,
+      0,
+      1,
+      10,
+      "DIRECTOR_FLAVOUR"
+    ],
+    [
+      27,
+      15,
+      3,
+      11,
+      12,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "Director Inputs",
+      "bounding": [
+        -30,
+        20,
+        540,
+        1220
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Director Prompt [restore]",
+      "bounding": [
+        1550,
+        30,
+        540,
+        720
+      ],
+      "color": "#2f8459",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.75,
+      "offset": [
+        70,
+        80
+      ]
+    }
+  },
+  "version": 0.4,
+  "definitions": {
+    "subgraphs": [
+      {
+        "id": "711e4bd1-f44b-4cf6-987b-2a5cf1d12012",
+        "version": 1,
+        "revision": 0,
+        "name": "H3 Director Core (obvpm)",
+        "state": {
+          "lastNodeId": 20,
+          "lastLinkId": 40,
+          "lastGroupId": 0,
+          "lastRerouteId": 0
+        },
+        "config": {},
+        "inputNode": {
+          "id": -10,
+          "bounding": [
+            -250,
+            30,
+            140,
+            120
+          ]
+        },
+        "outputNode": {
+          "id": -20,
+          "bounding": [
+            2990,
+            30,
+            160,
+            180
+          ]
+        },
+        "inputs": [
+          {
+            "id": "967e6807-1ff1-5695-bdc6-2527f7e58f0e",
+            "name": "system",
+            "type": "STRING",
+            "linkIds": [
+              30
+            ],
+            "pos": [
+              -130,
+              50
+            ]
+          },
+          {
+            "id": "8251784f-1ba1-5756-a7f6-84a46db0a2b1",
+            "name": "prompt",
+            "type": "STRING",
+            "linkIds": [
+              31
+            ],
+            "pos": [
+              -130,
+              70
+            ]
+          },
+          {
+            "id": "8c924afc-7366-5859-bc57-44c2f3295336",
+            "name": "llm_images",
+            "type": "IMAGE",
+            "linkIds": [
+              35
+            ],
+            "pos": [
+              -130,
+              90
+            ]
+          },
+          {
+            "id": "b6c01d98-a3f7-5a62-81ff-25cfe5c6acc1",
+            "name": "director_context",
+            "type": "STRING",
+            "linkIds": [
+              29
+            ],
+            "pos": [
+              -130,
+              110
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "id": "77c250eb-b1e6-55be-97ed-6caf6a9f1d1c",
+            "name": "current_direction",
+            "type": "STRING",
+            "linkIds": [
+              32
+            ],
+            "pos": [
+              3010,
+              50
+            ]
+          },
+          {
+            "id": "76edccdf-8c9c-5954-a6eb-96a5e222525a",
+            "name": "h3_prompt",
+            "type": "STRING",
+            "linkIds": [
+              33
+            ],
+            "pos": [
+              3010,
+              70
+            ]
+          },
+          {
+            "id": "a545fb7b-b5c8-5049-9dee-b349d1ce2587",
+            "name": "analysis_json",
+            "type": "STRING",
+            "linkIds": [
+              34
+            ],
+            "pos": [
+              3010,
+              90
+            ]
+          },
+          {
+            "id": "97262f19-7f39-5bfc-b773-4d019a0c42eb",
+            "name": "validation",
+            "type": "STRING",
+            "linkIds": [
+              38
+            ],
+            "pos": [
+              3010,
+              110
+            ]
+          }
+        ],
+        "widgets": [],
+        "nodes": [
+          {
+            "id": 2,
+            "type": "LlamaCppMtmd_Generate",
+            "pos": [
+              770,
+              0
+            ],
+            "size": [
+              340,
+              470
+            ],
+            "flags": {},
+            "order": 9,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "session",
+                "name": "session",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SESSION",
+                "link": 39
+              },
+              {
+                "localized_name": "images",
+                "name": "images",
+                "type": "IMAGE",
+                "link": 35,
+                "shape": 7
+              },
+              {
+                "localized_name": "audio",
+                "name": "audio",
+                "type": "AUDIO",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "video",
+                "name": "video",
+                "type": "VIDEO",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "model_profile",
+                "name": "model_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "system",
+                "name": "system",
+                "type": "STRING",
+                "link": 4,
+                "widget": {
+                  "name": "system"
+                }
+              },
+              {
+                "localized_name": "prompt",
+                "name": "prompt",
+                "type": "STRING",
+                "link": 5,
+                "widget": {
+                  "name": "prompt"
+                }
+              },
+              {
+                "localized_name": "max_tokens",
+                "name": "max_tokens",
+                "type": "INT",
+                "link": null,
+                "widget": {
+                  "name": "max_tokens"
+                }
+              },
+              {
+                "localized_name": "seed",
+                "name": "seed",
+                "type": "INT",
+                "link": null,
+                "widget": {
+                  "name": "seed"
+                }
+              },
+              {
+                "localized_name": "stop",
+                "name": "stop",
+                "type": "STRING",
+                "link": null,
+                "widget": {
+                  "name": "stop"
+                }
+              },
+              {
+                "localized_name": "video_with_audio",
+                "name": "video_with_audio",
+                "type": "BOOLEAN",
+                "link": null,
+                "widget": {
+                  "name": "video_with_audio"
+                }
+              },
+              {
+                "localized_name": "session_unload",
+                "name": "session_unload",
+                "type": "BOOLEAN",
+                "link": null,
+                "widget": {
+                  "name": "session_unload"
+                }
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "response",
+                "name": "response",
+                "type": "STRING",
+                "links": [
+                  6
+                ]
+              },
+              {
+                "localized_name": "thinking",
+                "name": "thinking",
+                "type": "STRING",
+                "links": []
+              },
+              {
+                "localized_name": "raw_json",
+                "name": "raw_json",
+                "type": "STRING",
+                "links": []
+              },
+              {
+                "localized_name": "metrics",
+                "name": "metrics_json",
+                "type": "STRING",
+                "links": []
+              },
+              {
+                "localized_name": "media_diagnostics",
+                "name": "media_diagnostics",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MEDIA_DIAGNOSTICS",
+                "links": []
+              }
+            ],
+            "title": "[llama.cpp] Generate #1",
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_Generate"
+            },
+            "widgets_values": [
+              "",
+              "",
+              4096,
+              42,
+              "fixed",
+              "",
+              false,
+              true
+            ],
+            "widgets_values_named": {
+              "system": "",
+              "prompt": "",
+              "max_tokens": 4096,
+              "seed": 42,
+              "control_after_generate": "fixed",
+              "stop": "",
+              "video_with_audio": false,
+              "session_unload": true
+            }
+          },
+          {
+            "id": 3,
+            "type": "H3DirectorAnalysisSnapshot",
+            "pos": [
+              1160,
+              0
+            ],
+            "size": [
+              370,
+              610
+            ],
+            "flags": {},
+            "order": 10,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "raw_analysis",
+                "name": "raw_analysis",
+                "type": "STRING",
+                "link": 6
+              },
+              {
+                "localized_name": "director_context",
+                "name": "director_context",
+                "type": "STRING",
+                "link": 29
+              },
+              {
+                "localized_name": "materialized",
+                "name": "materialized",
+                "type": "BOOLEAN",
+                "widget": {
+                  "name": "materialized"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "snapshot_raw_analysis",
+                "name": "snapshot_raw_analysis",
+                "type": "STRING",
+                "widget": {
+                  "name": "snapshot_raw_analysis"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "snapshot_director_context",
+                "name": "snapshot_director_context",
+                "type": "STRING",
+                "widget": {
+                  "name": "snapshot_director_context"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "raw_analysis",
+                "name": "raw_analysis",
+                "type": "STRING",
+                "links": [
+                  15
+                ]
+              },
+              {
+                "localized_name": "director_context",
+                "name": "director_context",
+                "type": "STRING",
+                "links": [
+                  16
+                ]
+              },
+              {
+                "localized_name": "snapshot_status",
+                "name": "snapshot_status",
+                "type": "STRING",
+                "links": []
+              }
+            ],
+            "properties": {
+              "cnr_id": "h3-obvpm-director",
+              "ver": "0.6.4",
+              "Node name for S&R": "H3DirectorAnalysisSnapshot"
+            },
+            "widgets_values": [
+              false,
+              "",
+              "",
+              null,
+              null
+            ],
+            "widgets_values_named": {
+              "materialized": false,
+              "snapshot_raw_analysis": "",
+              "snapshot_director_context": "",
+              "Reset Director Context (clear saved state)": null,
+              "Re-analyze (refresh Pass #1)": null
+            }
+          },
+          {
+            "id": 4,
+            "type": "LlamaCppMtmd_ModelProfile",
+            "pos": [
+              0,
+              310
+            ],
+            "size": [
+              330,
+              280
+            ],
+            "flags": {},
+            "order": 0,
+            "mode": 0,
+            "showAdvanced": true,
+            "inputs": [
+              {
+                "localized_name": "profile",
+                "name": "profile",
+                "type": "COMBO",
+                "widget": {
+                  "name": "profile"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "temperature",
+                "name": "temperature",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "temperature"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "top_p",
+                "name": "top_p",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "top_p"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "top_k",
+                "name": "top_k",
+                "type": "INT",
+                "widget": {
+                  "name": "top_k"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "min_p",
+                "name": "min_p",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "min_p"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "repeat_penalty",
+                "name": "repeat_penalty",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "repeat_penalty"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "presence_penalty",
+                "name": "presence_penalty",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "presence_penalty"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "model profile",
+                "name": "model profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+                "links": [
+                  1
+                ]
+              }
+            ],
+            "title": "#1 [llama.cpp] Model Profile",
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_ModelProfile"
+            },
+            "widgets_values": [
+              "Qwen 3.5+ Non-thinking",
+              0.45,
+              0.9,
+              20,
+              0,
+              1,
+              0
+            ],
+            "widgets_values_named": {
+              "profile": "Qwen 3.5+ Non-thinking",
+              "temperature": 0.45,
+              "top_p": 0.9,
+              "top_k": 20,
+              "min_p": 0,
+              "repeat_penalty": 1,
+              "presence_penalty": 0
+            }
+          },
+          {
+            "id": 5,
+            "type": "LlamaCppMtmd_HardwareRuntimeProfile",
+            "pos": [
+              0,
+              0
+            ],
+            "size": [
+              290,
+              230
+            ],
+            "flags": {
+              "collapsed": true
+            },
+            "order": 1,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "gpu_layers",
+                "name": "gpu_layers",
+                "type": "COMBO",
+                "widget": {
+                  "name": "gpu_layers"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "K cache type",
+                "name": "type_k",
+                "type": "COMBO",
+                "widget": {
+                  "name": "type_k"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "V cache type",
+                "name": "type_v",
+                "type": "COMBO",
+                "widget": {
+                  "name": "type_v"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "main_gpu",
+                "name": "main_gpu",
+                "type": "INT",
+                "widget": {
+                  "name": "main_gpu"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "n_threads",
+                "name": "n_threads",
+                "type": "INT",
+                "widget": {
+                  "name": "n_threads"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "flash_attention",
+                "name": "flash_attention",
+                "type": "COMBO",
+                "widget": {
+                  "name": "flash_attention"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "use_mmap",
+                "name": "use_mmap",
+                "type": "BOOLEAN",
+                "widget": {
+                  "name": "use_mmap"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "hardware profile",
+                "name": "hardware profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
+                "links": [
+                  2,
+                  9
+                ]
+              }
+            ],
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_HardwareRuntimeProfile"
+            },
+            "widgets_values": [
+              "all",
+              "FP16",
+              "FP16",
+              0,
+              0,
+              "auto",
+              true
+            ],
+            "widgets_values_named": {
+              "gpu_layers": "all",
+              "type_k": "FP16",
+              "type_v": "FP16",
+              "main_gpu": 0,
+              "n_threads": 0,
+              "flash_attention": "auto",
+              "use_mmap": true
+            }
+          },
+          {
+            "id": 6,
+            "type": "LlamaCppMtmd_Generate",
+            "pos": [
+              2190,
+              0
+            ],
+            "size": [
+              340,
+              470
+            ],
+            "flags": {},
+            "order": 12,
+            "mode": 0,
+            "showAdvanced": false,
+            "inputs": [
+              {
+                "localized_name": "session",
+                "name": "session",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SESSION",
+                "link": 40
+              },
+              {
+                "localized_name": "images",
+                "name": "images",
+                "type": "IMAGE",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "audio",
+                "name": "audio",
+                "type": "AUDIO",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "video",
+                "name": "video",
+                "type": "VIDEO",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "model_profile",
+                "name": "model_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "system",
+                "name": "system",
+                "type": "STRING",
+                "link": 10,
+                "widget": {
+                  "name": "system"
+                }
+              },
+              {
+                "localized_name": "prompt",
+                "name": "prompt",
+                "type": "STRING",
+                "link": 11,
+                "widget": {
+                  "name": "prompt"
+                }
+              },
+              {
+                "localized_name": "max_tokens",
+                "name": "max_tokens",
+                "type": "INT",
+                "link": null,
+                "widget": {
+                  "name": "max_tokens"
+                }
+              },
+              {
+                "localized_name": "seed",
+                "name": "seed",
+                "type": "INT",
+                "link": null,
+                "widget": {
+                  "name": "seed"
+                }
+              },
+              {
+                "localized_name": "stop",
+                "name": "stop",
+                "type": "STRING",
+                "link": null,
+                "widget": {
+                  "name": "stop"
+                }
+              },
+              {
+                "localized_name": "video_with_audio",
+                "name": "video_with_audio",
+                "type": "BOOLEAN",
+                "link": null,
+                "widget": {
+                  "name": "video_with_audio"
+                }
+              },
+              {
+                "localized_name": "session_unload",
+                "name": "session_unload",
+                "type": "BOOLEAN",
+                "link": null,
+                "widget": {
+                  "name": "session_unload"
+                }
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "response",
+                "name": "response",
+                "type": "STRING",
+                "links": [
+                  12
+                ]
+              },
+              {
+                "localized_name": "thinking",
+                "name": "thinking",
+                "type": "STRING",
+                "links": []
+              },
+              {
+                "localized_name": "raw_json",
+                "name": "raw_json",
+                "type": "STRING",
+                "links": []
+              },
+              {
+                "localized_name": "metrics",
+                "name": "metrics_json",
+                "type": "STRING",
+                "links": []
+              },
+              {
+                "localized_name": "media_diagnostics",
+                "name": "media_diagnostics",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MEDIA_DIAGNOSTICS",
+                "links": []
+              }
+            ],
+            "title": "[llama.cpp] Generate #2",
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_Generate"
+            },
+            "widgets_values": [
+              "",
+              "",
+              2048,
+              42,
+              "fixed",
+              "",
+              false,
+              true
+            ],
+            "widgets_values_named": {
+              "system": "",
+              "prompt": "",
+              "max_tokens": 2048,
+              "seed": 42,
+              "control_after_generate": "fixed",
+              "stop": "",
+              "video_with_audio": false,
+              "session_unload": true
+            }
+          },
+          {
+            "id": 7,
+            "type": "LlamaCppMtmd_ModelProfile",
+            "pos": [
+              1420,
+              680
+            ],
+            "size": [
+              330,
+              280
+            ],
+            "flags": {},
+            "order": 2,
+            "mode": 0,
+            "showAdvanced": true,
+            "inputs": [
+              {
+                "localized_name": "profile",
+                "name": "profile",
+                "type": "COMBO",
+                "widget": {
+                  "name": "profile"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "temperature",
+                "name": "temperature",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "temperature"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "top_p",
+                "name": "top_p",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "top_p"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "top_k",
+                "name": "top_k",
+                "type": "INT",
+                "widget": {
+                  "name": "top_k"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "min_p",
+                "name": "min_p",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "min_p"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "repeat_penalty",
+                "name": "repeat_penalty",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "repeat_penalty"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "presence_penalty",
+                "name": "presence_penalty",
+                "type": "FLOAT",
+                "widget": {
+                  "name": "presence_penalty"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "model profile",
+                "name": "model profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+                "links": [
+                  8
+                ]
+              }
+            ],
+            "title": "#2 [llama.cpp] Model Profile",
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_ModelProfile"
+            },
+            "widgets_values": [
+              "Qwen 3.5+ Non-thinking",
+              0.5,
+              0.95,
+              20,
+              0,
+              1,
+              0
+            ],
+            "widgets_values_named": {
+              "profile": "Qwen 3.5+ Non-thinking",
+              "temperature": 0.5,
+              "top_p": 0.95,
+              "top_k": 20,
+              "min_p": 0,
+              "repeat_penalty": 1,
+              "presence_penalty": 0
+            }
+          },
+          {
+            "id": 8,
+            "type": "H3DirectorResponseValidator",
+            "pos": [
+              2580,
+              0
+            ],
+            "size": [
+              310,
+              180
+            ],
+            "flags": {},
+            "order": 13,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "raw_response",
+                "name": "raw_response",
+                "type": "STRING",
+                "link": 12
+              },
+              {
+                "localized_name": "analysis_json",
+                "name": "analysis_json",
+                "type": "STRING",
+                "link": 13
+              },
+              {
+                "localized_name": "director_context",
+                "name": "director_context",
+                "type": "STRING",
+                "link": 14
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "current_direction",
+                "name": "current_direction",
+                "type": "STRING",
+                "links": [
+                  32
+                ]
+              },
+              {
+                "localized_name": "h3_prompt",
+                "name": "h3_prompt",
+                "type": "STRING",
+                "links": [
+                  33
+                ]
+              },
+              {
+                "localized_name": "analysis_json",
+                "name": "analysis_json",
+                "type": "STRING",
+                "links": [
+                  34
+                ]
+              },
+              {
+                "localized_name": "validation",
+                "name": "validation",
+                "type": "STRING",
+                "links": [
+                  28
+                ]
+              },
+              {
+                "localized_name": "continuity_info",
+                "name": "continuity_info",
+                "type": "STRING",
+                "links": []
+              },
+              {
+                "localized_name": "repair_system",
+                "name": "repair_system",
+                "type": "STRING",
+                "links": []
+              },
+              {
+                "localized_name": "repair_prompt",
+                "name": "repair_prompt",
+                "type": "STRING",
+                "links": []
+              }
+            ],
+            "properties": {
+              "cnr_id": "h3-obvpm-director",
+              "ver": "0.6.4",
+              "Node name for S&R": "H3DirectorResponseValidator"
+            }
+          },
+          {
+            "id": 9,
+            "type": "H3DirectorAnalysisCompose",
+            "pos": [
+              1580,
+              0
+            ],
+            "size": [
+              320,
+              140
+            ],
+            "flags": {},
+            "order": 11,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "raw_analysis",
+                "name": "raw_analysis",
+                "type": "STRING",
+                "link": 15
+              },
+              {
+                "localized_name": "director_context",
+                "name": "director_context",
+                "type": "STRING",
+                "link": 16
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "system",
+                "name": "system",
+                "type": "STRING",
+                "links": [
+                  10
+                ]
+              },
+              {
+                "localized_name": "prompt",
+                "name": "prompt",
+                "type": "STRING",
+                "links": [
+                  11
+                ]
+              },
+              {
+                "localized_name": "analysis_json",
+                "name": "analysis_json",
+                "type": "STRING",
+                "links": [
+                  13
+                ]
+              },
+              {
+                "localized_name": "director_context",
+                "name": "director_context",
+                "type": "STRING",
+                "links": [
+                  14
+                ]
+              },
+              {
+                "localized_name": "analysis_status",
+                "name": "analysis_status",
+                "type": "STRING",
+                "links": []
+              }
+            ],
+            "properties": {
+              "cnr_id": "h3-obvpm-director",
+              "ver": "0.6.4",
+              "Node name for S&R": "H3DirectorAnalysisCompose"
+            },
+            "widgets_values": [
+              ""
+            ],
+            "widgets_values_named": {
+              "director_reference_status": ""
+            }
+          },
+          {
+            "id": 10,
+            "type": "H3DirectorVRAMHandoff",
+            "pos": [
+              0,
+              900
+            ],
+            "size": [
+              280,
+              130
+            ],
+            "flags": {
+              "collapsed": true
+            },
+            "order": 3,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "system",
+                "name": "system",
+                "type": "STRING",
+                "link": 30
+              },
+              {
+                "localized_name": "prompt",
+                "name": "prompt",
+                "type": "STRING",
+                "link": 31
+              },
+              {
+                "localized_name": "enabled",
+                "name": "enabled",
+                "type": "BOOLEAN",
+                "widget": {
+                  "name": "enabled"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "system",
+                "name": "system",
+                "type": "STRING",
+                "links": [
+                  4
+                ]
+              },
+              {
+                "localized_name": "prompt",
+                "name": "prompt",
+                "type": "STRING",
+                "links": [
+                  5
+                ]
+              },
+              {
+                "localized_name": "diagnostics",
+                "name": "diagnostics",
+                "type": "STRING",
+                "links": []
+              }
+            ],
+            "properties": {
+              "cnr_id": "h3-obvpm-director",
+              "ver": "0.6.4",
+              "Node name for S&R": "H3DirectorVRAMHandoff"
+            },
+            "widgets_values": [
+              true
+            ],
+            "widgets_values_named": {
+              "enabled": true
+            }
+          },
+          {
+            "id": 13,
+            "type": "LlamaCppMtmd_PrefillProfile",
+            "pos": [
+              0,
+              650
+            ],
+            "size": [
+              330,
+              230
+            ],
+            "flags": {},
+            "order": 4,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "profile",
+                "name": "profile",
+                "type": "COMBO",
+                "widget": {
+                  "name": "profile"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "n_batch",
+                "name": "n_batch",
+                "type": "INT",
+                "widget": {
+                  "name": "n_batch"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "n_ubatch",
+                "name": "n_ubatch",
+                "type": "INT",
+                "widget": {
+                  "name": "n_ubatch"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "image_min_tokens",
+                "name": "image_min_tokens",
+                "type": "INT",
+                "widget": {
+                  "name": "image_min_tokens"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "image_max_tokens",
+                "name": "image_max_tokens",
+                "type": "INT",
+                "widget": {
+                  "name": "image_max_tokens"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "prefill_profile",
+                "name": "prefill_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+                "links": [
+                  22
+                ]
+              }
+            ],
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_PrefillProfile"
+            },
+            "widgets_values": [
+              "Custom",
+              1024,
+              0,
+              0,
+              0
+            ],
+            "widgets_values_named": {
+              "profile": "Custom",
+              "n_batch": 1024,
+              "n_ubatch": 0,
+              "image_min_tokens": 0,
+              "image_max_tokens": 0
+            },
+            "title": "#1 [llama.cpp] Prefill Profile",
+            "showAdvanced": true
+          },
+          {
+            "id": 16,
+            "type": "H3DirectorStatus",
+            "pos": [
+              2580,
+              300
+            ],
+            "size": [
+              350,
+              390
+            ],
+            "flags": {},
+            "order": 14,
+            "mode": 0,
+            "inputs": [
+              {
+                "name": "validation",
+                "type": "STRING",
+                "link": 28
+              }
+            ],
+            "outputs": [
+              {
+                "name": "validation",
+                "type": "STRING",
+                "links": [
+                  38
+                ]
+              }
+            ],
+            "properties": {
+              "Node name for S&R": "H3DirectorStatus",
+              "ver": "0.6.4",
+              "cnr_id": "h3-obvpm-director"
+            },
+            "widgets_values": []
+          },
+          {
+            "id": 17,
+            "type": "LlamaCppMtmd_PrefillProfile",
+            "pos": [
+              1790,
+              680
+            ],
+            "size": [
+              330,
+              230
+            ],
+            "flags": {},
+            "order": 5,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "profile",
+                "name": "profile",
+                "type": "COMBO",
+                "widget": {
+                  "name": "profile"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "n_batch",
+                "name": "n_batch",
+                "type": "INT",
+                "widget": {
+                  "name": "n_batch"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "n_ubatch",
+                "name": "n_ubatch",
+                "type": "INT",
+                "widget": {
+                  "name": "n_ubatch"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "image_min_tokens",
+                "name": "image_min_tokens",
+                "type": "INT",
+                "widget": {
+                  "name": "image_min_tokens"
+                },
+                "link": null
+              },
+              {
+                "localized_name": "image_max_tokens",
+                "name": "image_max_tokens",
+                "type": "INT",
+                "widget": {
+                  "name": "image_max_tokens"
+                },
+                "link": null
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "prefill_profile",
+                "name": "prefill_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+                "links": [
+                  23
+                ]
+              }
+            ],
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_PrefillProfile"
+            },
+            "widgets_values": [
+              "Custom",
+              1024,
+              0,
+              0,
+              0
+            ],
+            "widgets_values_named": {
+              "profile": "Custom",
+              "n_batch": 1024,
+              "n_ubatch": 0,
+              "image_min_tokens": 0,
+              "image_max_tokens": 0
+            },
+            "title": "#2 [llama.cpp] Prefill Profile",
+            "showAdvanced": true
+          },
+          {
+            "id": 18,
+            "type": "MarkdownNote",
+            "title": "llama.cpp · Quick setup",
+            "pos": [
+              390,
+              -490
+            ],
+            "size": [
+              780,
+              450
+            ],
+            "flags": {},
+            "order": 6,
+            "mode": 0,
+            "inputs": [],
+            "outputs": [],
+            "properties": {},
+            "widgets_values": [
+              "## llama.cpp · Quick setup\n1. Install [ComfyUI-llama-multimodal](https://github.com/craftingmod/ComfyUI-llama-multimodal) separately; follow its runtime/GPU setup instructions.\n2. Download compatible GGUF models (e.g. [mradermacher on Hugging Face](https://huggingface.co/mradermacher/models)). Put them in `ComfyUI/models/LLM/` or a configured LLM path. Refresh/restart.\n3. **Gen #1 (vision):** select the GGUF and its matching `mmproj` in Create Native Session. Start with `n_ctx=8192`; increase only if the complete request needs more context and fits in memory.\n4. **Gen #2 (text):** select its own GGUF in Create Native Session; `mmproj=[none]`. Choose the correct model profile for EACH pass (e.g. Gemma 4 vs Qwen non-thinking). Use non-thinking where supported for clean Director outputs.\n5. **Prefill:** separate profiles; start with `n_batch=1024`, reduce to 512 if needed. Leave image token limits and `n_ubatch` at 0 (automatic/default); Director already scales vision inputs. Hardware profile: adjust GPU layers and KV cache to your available memory, not just GGUF size.\n\n[llama.cpp multimodal documentation](https://github.com/ggml-org/llama.cpp/blob/master/tools/mtmd/README.md) · [Nodepack setup & troubleshooting](https://github.com/craftingmod/ComfyUI-llama-multimodal)\n\nModel, quantization, context, image count and GPU memory all matter. Start conservatively; these are starting points, not universal requirements.\n\n**Native Sessions:** install the supported multimodal llama-cpp-python fork in ComfyUI’s environment (see nodepack instructions). Keep `session_unload` enabled on both Generate nodes."
+            ],
+            "color": "#283944",
+            "bgcolor": "#19282f"
+          },
+          {
+            "id": 19,
+            "type": "LlamaCppMtmd_CreateSession",
+            "title": "#1 [llama.cpp] Create Native Session",
+            "pos": [
+              390,
+              0
+            ],
+            "size": [
+              340,
+              300
+            ],
+            "flags": {},
+            "order": 7,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "model_profile",
+                "name": "model_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+                "link": 1,
+                "shape": 7
+              },
+              {
+                "localized_name": "custom_chat_template",
+                "name": "custom_chat_template",
+                "type": "STRING",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "hardware_profile",
+                "name": "hardware_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
+                "link": 2,
+                "shape": 7
+              },
+              {
+                "localized_name": "reasoning",
+                "name": "reasoning",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_REASONING_CONFIG",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "speculative",
+                "name": "speculative",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SPECULATIVE_CONFIG",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "prefill_profile",
+                "name": "prefill_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+                "link": 22,
+                "shape": 7
+              },
+              {
+                "localized_name": "model_path",
+                "name": "model_path",
+                "type": "COMBO",
+                "link": null,
+                "widget": {
+                  "name": "model_path"
+                }
+              },
+              {
+                "localized_name": "mmproj_path",
+                "name": "mmproj_path",
+                "type": "COMBO",
+                "link": null,
+                "widget": {
+                  "name": "mmproj_path"
+                }
+              },
+              {
+                "localized_name": "custom_handler",
+                "name": "custom_handler",
+                "type": "COMBO",
+                "link": null,
+                "widget": {
+                  "name": "custom_handler"
+                }
+              },
+              {
+                "localized_name": "n_ctx",
+                "name": "n_ctx",
+                "type": "INT",
+                "link": null,
+                "widget": {
+                  "name": "n_ctx"
+                }
+              },
+              {
+                "localized_name": "verbose",
+                "name": "verbose",
+                "type": "BOOLEAN",
+                "link": null,
+                "widget": {
+                  "name": "verbose"
+                }
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "session",
+                "name": "session",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SESSION",
+                "links": [
+                  39
+                ]
+              }
+            ],
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_CreateSession"
+            },
+            "widgets_values_named": {
+              "model_path": "",
+              "mmproj_path": "[none]",
+              "custom_handler": "auto",
+              "n_ctx": 8192,
+              "verbose": false
+            },
+            "widgets_values": [
+              "",
+              "[none]",
+              "auto",
+              8192,
+              false
+            ]
+          },
+          {
+            "id": 20,
+            "type": "LlamaCppMtmd_CreateSession",
+            "title": "#2 [llama.cpp] Create Native Session",
+            "pos": [
+              1790,
+              250
+            ],
+            "size": [
+              340,
+              300
+            ],
+            "flags": {},
+            "order": 8,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "model_profile",
+                "name": "model_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE",
+                "link": 8,
+                "shape": 7
+              },
+              {
+                "localized_name": "custom_chat_template",
+                "name": "custom_chat_template",
+                "type": "STRING",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "hardware_profile",
+                "name": "hardware_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE",
+                "link": 9,
+                "shape": 7
+              },
+              {
+                "localized_name": "reasoning",
+                "name": "reasoning",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_REASONING_CONFIG",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "speculative",
+                "name": "speculative",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SPECULATIVE_CONFIG",
+                "link": null,
+                "shape": 7
+              },
+              {
+                "localized_name": "prefill_profile",
+                "name": "prefill_profile",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE",
+                "link": 23,
+                "shape": 7
+              },
+              {
+                "localized_name": "model_path",
+                "name": "model_path",
+                "type": "COMBO",
+                "link": null,
+                "widget": {
+                  "name": "model_path"
+                }
+              },
+              {
+                "localized_name": "mmproj_path",
+                "name": "mmproj_path",
+                "type": "COMBO",
+                "link": null,
+                "widget": {
+                  "name": "mmproj_path"
+                }
+              },
+              {
+                "localized_name": "custom_handler",
+                "name": "custom_handler",
+                "type": "COMBO",
+                "link": null,
+                "widget": {
+                  "name": "custom_handler"
+                }
+              },
+              {
+                "localized_name": "n_ctx",
+                "name": "n_ctx",
+                "type": "INT",
+                "link": null,
+                "widget": {
+                  "name": "n_ctx"
+                }
+              },
+              {
+                "localized_name": "verbose",
+                "name": "verbose",
+                "type": "BOOLEAN",
+                "link": null,
+                "widget": {
+                  "name": "verbose"
+                }
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "session",
+                "name": "session",
+                "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SESSION",
+                "links": [
+                  40
+                ]
+              }
+            ],
+            "properties": {
+              "cnr_id": "ollama-image-list",
+              "ver": "0325ac050ffdcba22dd58343256a430f4e3dfb21",
+              "Node name for S&R": "LlamaCppMtmd_CreateSession"
+            },
+            "widgets_values_named": {
+              "model_path": "",
+              "mmproj_path": "[none]",
+              "custom_handler": "auto",
+              "n_ctx": 16384,
+              "verbose": false
+            },
+            "widgets_values": [
+              "",
+              "[none]",
+              "auto",
+              16384,
+              false
+            ]
+          }
+        ],
+        "links": [
+          {
+            "id": 6,
+            "origin_id": 2,
+            "origin_slot": 0,
+            "target_id": 3,
+            "target_slot": 0,
+            "type": "STRING"
+          },
+          {
+            "id": 29,
+            "origin_id": -10,
+            "origin_slot": 3,
+            "target_id": 3,
+            "target_slot": 1,
+            "type": "STRING"
+          },
+          {
+            "id": 12,
+            "origin_id": 6,
+            "origin_slot": 0,
+            "target_id": 8,
+            "target_slot": 0,
+            "type": "STRING"
+          },
+          {
+            "id": 13,
+            "origin_id": 9,
+            "origin_slot": 2,
+            "target_id": 8,
+            "target_slot": 1,
+            "type": "STRING"
+          },
+          {
+            "id": 14,
+            "origin_id": 9,
+            "origin_slot": 3,
+            "target_id": 8,
+            "target_slot": 2,
+            "type": "STRING"
+          },
+          {
+            "id": 15,
+            "origin_id": 3,
+            "origin_slot": 0,
+            "target_id": 9,
+            "target_slot": 0,
+            "type": "STRING"
+          },
+          {
+            "id": 16,
+            "origin_id": 3,
+            "origin_slot": 1,
+            "target_id": 9,
+            "target_slot": 1,
+            "type": "STRING"
+          },
+          {
+            "id": 30,
+            "origin_id": -10,
+            "origin_slot": 0,
+            "target_id": 10,
+            "target_slot": 0,
+            "type": "STRING"
+          },
+          {
+            "id": 31,
+            "origin_id": -10,
+            "origin_slot": 1,
+            "target_id": 10,
+            "target_slot": 1,
+            "type": "STRING"
+          },
+          {
+            "id": 32,
+            "origin_id": 8,
+            "origin_slot": 0,
+            "target_id": -20,
+            "target_slot": 0,
+            "type": "STRING"
+          },
+          {
+            "id": 33,
+            "origin_id": 8,
+            "origin_slot": 1,
+            "target_id": -20,
+            "target_slot": 1,
+            "type": "STRING"
+          },
+          {
+            "id": 34,
+            "origin_id": 8,
+            "origin_slot": 2,
+            "target_id": -20,
+            "target_slot": 2,
+            "type": "STRING"
+          },
+          {
+            "id": 1,
+            "origin_id": 4,
+            "origin_slot": 0,
+            "target_id": 19,
+            "target_slot": 0,
+            "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE"
+          },
+          {
+            "id": 22,
+            "origin_id": 13,
+            "origin_slot": 0,
+            "target_id": 19,
+            "target_slot": 5,
+            "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE"
+          },
+          {
+            "id": 2,
+            "origin_id": 5,
+            "origin_slot": 0,
+            "target_id": 19,
+            "target_slot": 2,
+            "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE"
+          },
+          {
+            "id": 35,
+            "origin_id": -10,
+            "origin_slot": 2,
+            "target_id": 2,
+            "target_slot": 1,
+            "type": "IMAGE"
+          },
+          {
+            "id": 4,
+            "origin_id": 10,
+            "origin_slot": 0,
+            "target_id": 2,
+            "target_slot": 5,
+            "type": "STRING"
+          },
+          {
+            "id": 5,
+            "origin_id": 10,
+            "origin_slot": 1,
+            "target_id": 2,
+            "target_slot": 6,
+            "type": "STRING"
+          },
+          {
+            "id": 8,
+            "origin_id": 7,
+            "origin_slot": 0,
+            "target_id": 20,
+            "target_slot": 0,
+            "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_MODEL_PROFILE"
+          },
+          {
+            "id": 23,
+            "origin_id": 17,
+            "origin_slot": 0,
+            "target_id": 20,
+            "target_slot": 5,
+            "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_PREFILL_PROFILE"
+          },
+          {
+            "id": 9,
+            "origin_id": 5,
+            "origin_slot": 0,
+            "target_id": 20,
+            "target_slot": 2,
+            "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_HARDWARE_RUNTIME_PROFILE"
+          },
+          {
+            "id": 10,
+            "origin_id": 9,
+            "origin_slot": 0,
+            "target_id": 6,
+            "target_slot": 5,
+            "type": "STRING"
+          },
+          {
+            "id": 11,
+            "origin_id": 9,
+            "origin_slot": 1,
+            "target_id": 6,
+            "target_slot": 6,
+            "type": "STRING"
+          },
+          {
+            "id": 38,
+            "origin_id": 16,
+            "origin_slot": 0,
+            "target_id": -20,
+            "target_slot": 3,
+            "type": "STRING"
+          },
+          {
+            "id": 28,
+            "origin_id": 8,
+            "origin_slot": 3,
+            "target_id": 16,
+            "target_slot": 0,
+            "type": "STRING"
+          },
+          {
+            "id": 39,
+            "origin_id": 19,
+            "origin_slot": 0,
+            "target_id": 2,
+            "target_slot": 0,
+            "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SESSION"
+          },
+          {
+            "id": 40,
+            "origin_id": 20,
+            "origin_slot": 0,
+            "target_id": 6,
+            "target_slot": 0,
+            "type": "OLLAMA_IMAGE_LIST_LLAMA_CPP_SESSION"
+          }
+        ],
+        "groups": []
+      }
+    ]
+  }
+}

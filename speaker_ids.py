@@ -12,12 +12,7 @@ from .validator import DIALOGUE_RE, SPEAKER_RE, SUBJECT_RE, SECTIONS
 # An actor attribution is more than an incidental Subject mention. This small
 # syntactic gate protects against e.g. "S1 watches S2 ask" being normalized as
 # S1's speech. Ambiguity fails closed and remains visible in Validator output.
-_VOCAL_CUE = re.compile(
-    r"\b(?:says?|said|asks?|asked|replies|reply|replied|responds?|responded|"
-    r"answers?|answered|speaks?|spoke|whispers?|whispered|murmurs?|murmured|"
-    r"shouts?|shouted|adds?|added|calls?|called|exclaims?|exclaimed|"
-    r"mutters?|muttered|sings?|sang|hums?|hummed)\b", re.I
-)
+from .vocal_cues import VOCAL_CUE as _VOCAL_CUE
 _OBJECT_PREP = re.compile(
     r"\b(?:to|toward|towards|at|with|for|of|about|from|beside|behind|near|"
     r"next\s+to|alongside|on|over|under)\s*$", re.I

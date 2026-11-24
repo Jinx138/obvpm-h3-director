@@ -1,4 +1,5 @@
 """v0.6.2-dev1: per-image conservative vision cap + independent hunt diagnostics."""
+from fixture_flavour import NEUTRAL_FLAVOUR
 import importlib.util
 import json
 from pathlib import Path
@@ -48,7 +49,7 @@ class VisionCapTests(unittest.TestCase):
     def test_sparse_references_have_correct_slots_after_vision_scaling(self):
         a = torch.rand((1, 1150, 1200, 3))
         b = torch.rand((1, 540, 780, 3))
-        result = H3DirectorRequestBuilder().build('The two subjects move.', 5.2,
+        result = H3DirectorRequestBuilder().build('The two subjects move.', 5.2, flavour_profile=NEUTRAL_FLAVOUR,
             picture_1=a, picture_7=b, length=124, hunting=False)['result']
         images = result[2]
         ctx = json.loads(result[3])
@@ -64,14 +65,14 @@ class VisionCapTests(unittest.TestCase):
         self.assertEqual(continuity['warnings'], [])
 
     def test_unchanged_picture_transport_with_unconnected_slots(self):
-        r = H3DirectorRequestBuilder().build('No images connected.',5.2)
+        r = H3DirectorRequestBuilder().build('No images connected.',5.2, flavour_profile=NEUTRAL_FLAVOUR)
         self.assertEqual(r['result'][2], [])
         self.assertEqual(json.loads(r['result'][3])['picture_slots'], [])
         self.assertEqual(json.loads(r['result'][5])['vision_input_scaling']['images'], [])
 
     def test_picture_numbers_not_changed_by_hunt_meta(self):
         a = torch.zeros(1, 512, 512, 3)
-        raw = H3DirectorRequestBuilder().build('Picture test.',5.2,picture_4=a,
+        raw = H3DirectorRequestBuilder().build('Picture test.',5.2, flavour_profile=NEUTRAL_FLAVOUR,picture_4=a,
                                                hunting='True',hunt_count='1')
         data = raw['result']
         continuity = json.loads(data[5])

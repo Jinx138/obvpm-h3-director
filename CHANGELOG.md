@@ -1,12 +1,19 @@
 # Changelog
 
-## v0.6.3 — 2026-11-21 (portable timing & stable picture wiring)
+## v0.6.4
 
-- Restored the connectable `duration_seconds` FLOAT input for vanilla H3 workflows. The local widget is the fallback; linked OBVPM `length` (24-fps frames) takes priority.
-- Moved stable Request Builder sockets (`length`, `duration_seconds`, `hunting`, `hunt_count`) before dynamically growing Picture inputs. Repaired link indices for both legacy object-backed and modern Map-backed LiteGraph connections, including subgraphs.
-- Updated duration, timeline, hunt diagnostics and reference-picture tooltips.
-- Renamed the portable example to `H3-Director-Portable-Workspace.json`, using the user-tested workspace arrangement, fixed seeds 42, and both materialization switches off in the saved example.
-- Validated in live ComfyUI: vanilla H3 Ref2VA prompt integration, fixed timing/hunt connections through dynamic picture expansion, and the restored connectable duration input.
+- Modular Flavour skills and actor-specific performance/continuity contracts.
+- Native Director Core subgraph, Pass #1 semantic readout and streamlined Shot Editor.
+- Current llama.cpp Native Sessions, independent model/prefill profiles, session unloading.
+- Append-only Picture socket lifecycle, SemVer clipboard metadata, compact prompt history.
+- Two-line Core readouts and a local View Status report; distinguish successful normalization from remaining validation failures.
+- Classify correctly bound environment references omitted from shot prose as advisory warnings; keep missing or incorrect bindings as errors. Place Re-analyze directly above Reset.
+- Single Core Workspace example; older flat examples superseded.
+- Preserve explicit shared dialogue, with separate grounded vocal IDs and verbatim validation for each speaker.
+
+## v0.6.3 — 2026-11-22
+
+- Restored connectable duration input and improved stable timing/hunt and Picture socket handling.
 
 ## v0.6.2 — 2026-11-21 (shot iteration and targeted queue isolation)
 

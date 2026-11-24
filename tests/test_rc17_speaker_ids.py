@@ -1,4 +1,5 @@
 """rc17 synthetic speaker normalization regressions (public-safe)."""
+from fixture_flavour import NEUTRAL_FLAVOUR, neutral_manifests
 import importlib.util
 import json
 from pathlib import Path
@@ -152,7 +153,7 @@ class TestRC17SpeakerIDs(unittest.TestCase):
         self.assertEqual(editor.check_lazy_status(materialized=True), [])
         returned = editor.store(materialized=True, shot_direction="Edited", shot_h3_prompt=stored,
                                 shot_analysis="The user's own notes")
-        self.assertEqual(returned, (stored, "Edited", "The user's own notes"))
+        self.assertEqual(returned, (stored, "Edited", "The user's own notes", "", "", ""))
 
     def test_repair_outputs_unmodified_when_normalization_passes(self):
         data = analysis()
@@ -161,7 +162,7 @@ class TestRC17SpeakerIDs(unittest.TestCase):
             "picture_roles": [{"picture": 1, "role": "character"}, {"picture": 2, "role": "character"}],
             "required_picture_bindings": [],
         }
-        context = json.dumps({"direction": "Two actors have a short conversation", "picture_slots": [1, 2], "operation": "new"})
+        context = json.dumps({"director_flavour": NEUTRAL_FLAVOUR, "director_skill_manifests": neutral_manifests(), "direction": "Two actors have a short conversation", "picture_slots": [1, 2], "operation": "new"})
         original = prompt("<Subject 7> says, <d>[English] First line.</d> <Subject 3> says, <d>[English] Second line.</d>")
         result = nodes.H3DirectorResponseValidator().validate(original, json.dumps(data), context)
         self.assertTrue(result[3].startswith("PASS"), result[3])
