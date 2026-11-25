@@ -68,7 +68,7 @@ Open the result in **H3 Director Shot Editor (obvpm)**, adjust anything you wish
 
 ### Director workspace in OBVPM
 
-![H3 Director v0.6.4 — Flavour, Request Builder, Director Core and editable Shot Editor](docs/images/obvpm-director-workflow-overview.png)
+![H3 Director v0.6.5 — Flavour, Request Builder, Director Core and editable Shot Editor](docs/images/obvpm-director-workflow-overview.png)
 
 The screenshot shows the Director integrated into an existing OBVPM workflow, with a saved analysis and editable materialized prompt. The portable example contains the Director workspace, not the OBVPM Pro workflow shown here.
 
@@ -76,7 +76,7 @@ The screenshot shows the Director integrated into an existing OBVPM workflow, wi
 
 ### 1. Install the Director
 
-**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.4**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.4 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
+**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.5**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.5 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
 
 **Manual GitHub alternative:** Clone into ComfyUI's `custom_nodes` directory, keeping the folder name `h3-prompt-composer`:
 
@@ -91,7 +91,7 @@ Do not install both the Manager package and a GitHub clone in the same ComfyUI i
 
 ### 2. Load the portable Director workspace
 
-Open **[`examples/H3-Director-Core-Workspace.json`](examples/H3-Director-Core-Workspace.json)** in ComfyUI. This is the single supported example for v0.6.4. Copy the complete Director block into your own workflow and configure the models inside **H3 Director Core (obvpm)**. Keep the Recipe Prompt in its separate `[restore]` group for OBVPM integration. The Flavour node is required and stays alongside Request Builder. Existing flat workflows can still use the modular nodes, but must connect Flavour and refresh old analysis snapshots.
+Open **[`examples/H3-Director-Core-Workspace.json`](examples/H3-Director-Core-Workspace.json)** in ComfyUI. This is the single supported example for v0.6.5. Copy the complete Director block into your own workflow and configure the models inside **H3 Director Core (obvpm)**. Keep the Recipe Prompt in its separate `[restore]` group for OBVPM integration. The Flavour node is required and stays alongside Request Builder. Existing flat workflows can still use the modular nodes, but must connect Flavour and refresh old analysis snapshots.
 
 Its Generate nodes use the external **`ollama-image-list` llama.cpp** integration. Configure that integration, or connect your own compatible LLM nodes:
 
@@ -172,9 +172,9 @@ Selecting historical clips restores their saved Recipe prompts through OBVPM whi
 
 ## Continuity, dialogue, and viewpoint
 
-**Extend, Prepend, Bridge.** The Director uses OBVPM's START boundary for Extend, TARGET boundary for Prepend, and both endpoints for Bridge. Boundary frames provide visual context; H3 Picture numbers continue to identify the explicit reference inputs. Stable people, settings, and spatial relationships carry forward as new action unfolds.
+**Extend, Prepend, Bridge.** The Director uses OBVPM's START boundary for Extend, TARGET boundary for Prepend, and both endpoints for Bridge. Boundary frames provide visual context; H3 Picture numbers continue to identify the explicit reference inputs. Stable people, settings, and spatial relationships carry forward as new action unfolds. Current accepted reference ownership takes precedence over historical shot-local Subject numbers; conflicting or ambiguous endpoint identities are not silently merged.
 
-**Dialogue authority.** Exact lines supplied in Direction retain their wording and order. When you explicitly request new spoken lines, the Director can compose them. Speaker-attributed text such as `Alex says: "..."` helps preserve the correct voice assignment. Explicitly shared lines (e.g. `Alex and Sam exclaim in unison: "Cheers!"`) are expanded into separate canonical dialogue events when both speakers are unambiguously reference-backed; ambiguous collective bindings are reported instead of guessed. Timing itself remains a model-dependent performance instruction. The live Vocal Event Normalizer shares a delivery vocabulary with Dialogue Authority and can restore missing speaker IDs and canonical dialogue tags when the already-staged words, speaker, language and ordering are unambiguous. It leaves changed or omitted words, unresolved attribution and unbalanced tags for validation; it never rewrites frozen edits.
+**Dialogue authority.** Exact spoken lines supplied in Direction retain their wording and order. The dialogue contract reconciles literal user quotations with the Analyst’s structured speaker plan, rather than replacing that plan with a partial lexical parse. Unresolved explicit speech is reported rather than silently dropped. When you explicitly request new spoken lines, the Director can compose them. Speaker-attributed text such as `Alex says: "..."` helps preserve the correct voice assignment. Explicitly shared lines (e.g. `Alex and Sam exclaim in unison: "Cheers!"`) are expanded into separate canonical dialogue events when both speakers are unambiguously reference-backed; ambiguous collective bindings are reported instead of guessed. Timing itself remains a model-dependent performance instruction. The live Vocal Event Normalizer shares a delivery vocabulary with Dialogue Authority and can restore missing speaker IDs and canonical dialogue tags when the already-staged words, speaker, language and ordering are unambiguous. It can also normalize clearly attributed postfix speaker IDs and restore a single added terminal period or exclamation mark to the exact authorized punctuation. It leaves changed or omitted words, unresolved attribution and unbalanced tags for validation; it never rewrites frozen edits.
 
 **POV.** The reserved `viewer` represents the first-person camera viewpoint. Hands, arms, and direct physical interaction can be described from that viewpoint. Camera distance and perspective follow your current Direction and established scene context.
 
@@ -187,6 +187,7 @@ Selecting historical clips restores their saved Recipe prompts through OBVPM whi
 - The Core status checks basic wiring and captured prompt validation, not backend versions or generated video quality. Review remaining warnings or failures before applying an approved prompt.
 - If a particular ComfyUI reload restores the materialized switch but not its saved analysis text, turn off materialization or use **Re-analyze**, then run DIRECT again. The snapshot serialization fix has automated regression coverage; persistence across all frontend versions and OBVPM restore paths is not certified.
 - A detail image of a known character can still be retained as an extra Subject in one reference-authority regression case. Prefer explicit ownership (e.g. `the hands of Alex`) and inspect the reference bindings before approval.
+- Indirect speaker attribution and classification of additional quoted text depend on the structured Analyst output. Malformed Pass #1 JSON is rejected; re-analyze with a different seed if needed.
 - Simultaneous speech is model-dependent; separate correctly attributed dialogue events do not guarantee overlapping audio.
 - The full Director Context is currently workflow-local. OBVPM's separate Recipe Prompt restore mechanism remains available; per-timeline/per-version Director Context storage is planned, not implemented.
 
@@ -198,6 +199,7 @@ See [ROADMAP.md](ROADMAP.md) for follow-up work.
 - **Example backend:** `ComfyUI-llama-multimodal` llama.cpp with local model and hardware configuration; other compatible backends can be connected.
 - **OBVPM integration:** Recipe synchronization and timeline continuity were developed with **OBVPM Timeline 0.5.2**.
 - **Example workflow:** [H3 Director Core Workspace](examples/H3-Director-Core-Workspace.json). The older flat examples are superseded. Existing saved workflows are not deleted.
+- **Upgrade from v0.6.4:** restart ComfyUI, hard-refresh the browser and use Re-analyze before DIRECT to rebuild the dialogue and continuity contracts. Existing Core wiring is unchanged.
 - **Upgrade from v0.6.3:** install the current llama.cpp nodepack for the bundled example; copy the new workspace, configure both sessions and reset/re-analyze old snapshots. The Flavour input is now required.
 - **Video tutorial (previous UI):** [Original OBVPM integration walkthrough](https://youtu.be/jMFrAsUYXUQ). The current Core layout and native sessions supersede its Director setup screens.
 

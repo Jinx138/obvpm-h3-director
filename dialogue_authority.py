@@ -1,8 +1,9 @@
 """Deterministic, user-owned dialogue authority for the current Director interval.
 
-Only explicit speaker-attributed, quoted speech in the current Direction is
-extracted. Stage directions around speech do not become part of the utterance
-or speaker label. The Analyst cannot delete, reorder, or rewrite these lines.
+Literal user quotes own the words. Explicit speech introductions provide
+independent coverage; the Analyst supplies semantic attribution for indirect
+references and identifies additional quoted speech. No paraphrased or invented
+Analyst words are admitted into a quoted dialogue contract.
 """
 import re
 
@@ -10,9 +11,15 @@ import re
 # an action or followed by more stage direction, or share a line with a reply.
 from .vocal_cues import AUTHORITY_CUE
 
+_DELIVERY_MODIFIERS = (
+    r"softly|quietly|gently|warmly|calmly|firmly|urgently|slowly|hesitantly|"
+    r"nervously|aloud|suddenly|smilingly|laughingly|cheerfully|excitedly|"
+    r"enthusiastically|proudly|happily|sadly|angrily|playfully|sarcastically|"
+    r"clearly|loudly|tenderly|breathlessly"
+)
 _SPEECH_INTRO = re.compile(
     AUTHORITY_CUE
-    + r"(?:\s+(?:softly|quietly|gently|warmly|calmly|firmly|urgently|slowly|hesitantly|nervously|aloud|suddenly))*"
+    + r"(?:\s+(?:" + _DELIVERY_MODIFIERS + r"))*"
     + r"(?:\s+(?:in unison|together|simultaneously|in chorus))?"
     + r"(?:\s+in\s+(?P<language>English|German|French|Spanish|Italian|Portuguese|Dutch|Japanese|Korean|Mandarin|Chinese|Russian|Arabic|Hindi|Polish|Turkish|Swedish))?"
     + r"\s*[:,]?\s*(?P<open>[\"“„'‘])",
@@ -34,10 +41,22 @@ _ACTION_CUE = re.compile(
     r"glancing|leaning|grinning|laughing|reaching|pausing)\b"
 )
 _DELIVERY_ADVERB = re.compile(
-    r"(?:\s+(?:softly|quietly|gently|warmly|calmly|firmly|urgently|"
-    r"slowly|hesitantly|nervously|aloud|suddenly))+$", flags=re.I,
+    r"(?:\s+(?:" + _DELIVERY_MODIFIERS + r"))+$", flags=re.I,
 )
 _SPEAKER_LABEL = re.compile(r"[\w][\w .,'’\-]{0,70}")
+# Sentence-local attribution: an earlier staging sentence must not supply
+# the actor of a later quoted speech event. Honor common name abbreviations.
+_SENTENCE_END = re.compile(r"[.!?]+\s+")
+_NAME_ABBREVIATION = re.compile(r"(?:\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St)\.|\b[A-Z]\.)$", re.I)
+
+
+def _local_speech_lead(lead):
+    start = 0
+    for boundary in _SENTENCE_END.finditer(lead):
+        if _NAME_ABBREVIATION.search(lead[:boundary.end()].rstrip()):
+            continue
+        start = boundary.end()
+    return lead[start:]
 
 
 def _closing_quote(line, start, closer):
@@ -53,14 +72,14 @@ def _closing_quote(line, start, closer):
 
 def _speaker_from_lead(lead):
     """Keep the attributed actor, not the actor's adjacent stage directions."""
-    lead = lead.lstrip(' \t.;,!?')
+    lead = _local_speech_lead(lead).lstrip(' \t.;,!?')
     # A same-line reply may begin 'and Bryn replies' after a quotation.
     lead = re.sub(r'(?i)^(?:and|then)\s+', '', lead)
     action = _ACTION_CUE.search(lead)
     if action:
         lead = lead[:action.start()]
     else:
-        lead = _DELIVERY_ADVERB.sub('', lead)
+        lead = _DELIVERY_ADVERB.sub('', lead.rstrip())
     speaker = lead.strip(' \t,;')
     # Do not assign authority to unattributed narrative connectors or an
     # unresolved clause that ends in 'and' (unknown staging/action).
@@ -100,52 +119,110 @@ def extract_user_dialogue(direction):
     return [entry for entry, _, _ in _extract_dialogue_events(direction)]
 
 
-def authoritative_speech_request(direction, previous=None):
-    """Build a source-of-truth contract, or None when nothing is quoted.
+# Independent literal inventory: quotations are not inherently speech. Keep
+# their positions so semantic matching cannot reorder the user's script.
+_QUOTE = re.compile(r"(?<!\w)[\"“„'‘]")
+_INDIRECT = re.compile(r"(?:he|she|they|it|him|her|them|the former|the latter|the same (?:man|woman|person|speaker))", re.I)
 
-    Only the dialogue itself is user-owned; language can be carried over as a
-    *hint* from prior analysis, because extracting language from arbitrary
-    dialogue would require fallible classification.
+
+def _literal_candidates(direction):
+    candidates = []
+    for line in str(direction or '').splitlines():
+        cursor = 0
+        while opening := _QUOTE.search(line, cursor):
+            close = _closing_quote(line, opening.end(), _PAIRS[opening.group(0)])
+            if close < 0:
+                cursor = opening.end()
+                continue
+            # Only a speech intro ending at THIS quotation is evidence for
+            # mandatory coverage. Do not match verbs inside earlier quotes.
+            lead = line[cursor:opening.end()]
+            intro = next((m for m in _SPEECH_INTRO.finditer(lead) if m.end() == len(lead)), None)
+            speaker = _speaker_from_lead(lead[:intro.start()]) if intro else ''
+            if _INDIRECT.fullmatch(speaker):
+                speaker = ''
+            words = line[opening.end():close]
+            if words.strip():
+                candidates.append({'text': words, 'speaker': speaker,
+                                   'explicit_speech': intro is not None,
+                                   'simultaneous': bool(intro and re.search(r'\b(?:in unison|together|simultaneously|in chorus)\b', intro.group(0), re.I)),
+                                   'language': intro.group('language') if intro else None})
+            cursor = close + 1
+    return candidates
+
+
+def authoritative_speech_request(direction, previous=None):
+    """Reconcile literal coverage with the Analyst's semantic speech plan.
+
+    Direct explicit attribution is never displaced by Analyst disagreement.
+    Indirect/unparsed leads use exact-quote matching, not a pronoun heuristic.
+    Additional literal quotes need a preserve-mode Analyst attribution. Repeated
+    identical quotes require an unambiguous occurrence alignment; no partial
+    matching or insertion of paraphrased speech. An unbound explicit quote
+    remains required, visibly unresolved, rather than disappearing.
     """
-    events = _extract_dialogue_events(direction)
-    utterances = [entry for entry, _, _ in events]
+    from collections import defaultdict
+    from .speaker_ids import _speech_entry
+    previous = previous if isinstance(previous, dict) else {}
+    candidates = _literal_candidates(direction)
+    analyst = defaultdict(list)
+    if previous.get('mode') == 'preserve':
+        for entry in previous.get('utterances') or []:
+            speaker, words = _speech_entry(entry)
+            if speaker and words and not _INDIRECT.fullmatch(speaker):
+                analyst[words].append(speaker)
+    occurrences = defaultdict(list)
+    for index, candidate in enumerate(candidates):
+        occurrences[candidate['text'].strip()].append(index)
+    # Do not assign a single Analyst attribution to multiple identical quotes.
+    # Equal occurrence counts permit chronological one-to-one alignment.
+    semantic = {}
+    for words, indexes in occurrences.items():
+        matches = analyst.get(words, [])
+        if len(indexes) == len(matches):
+            semantic.update(zip(indexes, matches))
+    utterances, simultaneous, languages, unresolved = [], [], [], []
+    for index, candidate in enumerate(candidates):
+        attributed = candidate['speaker'] or semantic.get(index, '')
+        if not candidate['explicit_speech'] and index not in semantic:
+            continue
+        number = len(utterances) + 1
+        if not attributed:
+            unresolved.append(number)
+            utterances.append({'speaker': '', 'text': candidate['text']})
+        else:
+            utterances.append(f"{attributed}: {candidate['text']}")
+        if candidate['simultaneous']:
+            simultaneous.append(number)
+        languages.append(candidate['language'])
     if not utterances:
         return None
-    previous = previous if isinstance(previous, dict) else {}
     request = {
-        'mode': 'preserve',
-        'required': True,
+        'mode': 'preserve', 'required': True,
         'language': str(previous.get('language') or ''),
-        'intent': 'Preserve the explicit quoted user dialogue verbatim, with speaker order unchanged.',
-        'utterances': utterances,
-        'authority': 'user_direction',
+        'intent': 'Preserve every explicit quoted user dialogue event verbatim in user order; resolve indirect speakers from the Analyst.',
+        'utterances': utterances, 'authority': 'user_direction',
     }
-    simultaneous = [n for n, (_, together, _) in enumerate(events, 1) if together]
+    if unresolved:
+        request['unresolved_dialogue_events'] = unresolved
     if simultaneous:
         request['simultaneous_lines'] = simultaneous
-    # An explicit, consistent speech-language instruction overrides the
-    # Analyst hint. Do not infer language from surrounding stage directions.
-    languages = [language for _, _, language in events]
     if all(languages) and len({language.casefold() for language in languages}) == 1:
         request['language'] = languages[0].capitalize()
         request['language_authority'] = 'user_direction'
     elif any(language and language.casefold() != request['language'].casefold() for language in languages):
-        # A single global hint cannot safely represent multilingual events.
         request['language'] = ''
     return request
 
 
-def enforce_user_dialogue(analysis, direction):
-    """Stamp user-supplied quotes over inconsistent Analyst speech_request.
-
-    Returns the effective speech request. Does not touch Analyst planning,
-    invented speech authorized by separate instructions, or shot materializations.
-    """
+def enforce_user_dialogue(analysis, direction, analyst_speech=None):
+    """Preserve user words; use the original Analyst plan for indirect speakers."""
     intent = analysis.get('intent') or {}
     if not isinstance(intent, dict):
         raise ValueError('Analysis intent must be an object')
     previous = intent.get('speech_request') or {}
-    authority = authoritative_speech_request(direction, previous)
+    evidence = analyst_speech if isinstance(analyst_speech, dict) else previous
+    authority = authoritative_speech_request(direction, evidence)
     if authority is not None:
         intent['speech_request'] = authority
         analysis['intent'] = intent

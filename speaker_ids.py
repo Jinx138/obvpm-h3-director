@@ -54,8 +54,8 @@ def _detail_span(text):
     return (start, start + next_heading.start() if next_heading else len(text))
 
 
-def _named_subjects(analysis):
-    """Resolve explicit Analyst/role labels to unique, non-environment Subjects."""
+def _subject_label_candidates(analysis):
+    """Collect explicit reference-backed labels without discarding ambiguity."""
     candidates = defaultdict(set)
     subjects = analysis.get("subjects") or []
     for subject in subjects:
@@ -100,7 +100,12 @@ def _named_subjects(analysis):
             key = label.strip().casefold()
             if key:
                 candidates[key].add(number)
-    return {key: next(iter(ids)) for key, ids in candidates.items() if len(ids) == 1}
+    return candidates
+
+
+def _named_subjects(analysis):
+    """Resolve explicit Analyst/role labels to unique, non-environment Subjects."""
+    return {key: next(iter(ids)) for key, ids in _subject_label_candidates(analysis).items() if len(ids) == 1}
 
 
 def _speech_entry(entry):
@@ -137,6 +142,8 @@ def normalize_speaker_ids(h3_prompt, analysis):
         return text, 0
 
     speech = (analysis.get("intent") or {}).get("speech_request") or {}
+    if speech.get("unresolved_dialogue_events"):
+        return text, 0
     is_preserve = str(speech.get("mode") or "").casefold() == "preserve"
     provided = speech.get("utterances") or []
     if is_preserve:

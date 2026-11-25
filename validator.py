@@ -162,6 +162,8 @@ def _speech_checks(text, expected_speech=None, speaker_subject_map=None):
         for i, match in enumerate(matches, 1):
             if match.group(1).strip().casefold() != str(request["language"]).strip().casefold():
                 problems.append(f"dialogue event {i} uses language [{match.group(1)}], not user-authorized [{request['language']}]")
+    if request.get("unresolved_dialogue_events"):
+        problems.append("unresolved user dialogue speaker attribution for event(s): " + ", ".join(map(str, request["unresolved_dialogue_events"])))
     if request.get("unresolved_collective_speakers"):
         problems.append("unresolved collective dialogue attribution: " + ", ".join(request["unresolved_collective_speakers"]))
     if request.get("required") and str(request.get("mode", "")).casefold() in {"preserve", "invent"}:

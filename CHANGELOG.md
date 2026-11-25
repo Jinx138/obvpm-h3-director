@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.5
+
+- Reconcile exact user-authorized speech quotations with the Analyst’s structured actor-level speech plan; preserve repeated events and flag unresolved attribution instead of silently losing dialogue.
+- Repair unambiguous missing or postfix speaker markers, canonical dialogue syntax and narrowly scoped added terminal punctuation; preserve speaker order and spoken words. Prefer explicit role labels over incidental mentions.
+- Reconcile current and historical reference ownership for Extend, Prepend and Bridge without unioning incompatible Picture bindings merely because shot-local Subject numbers coincide.
+- Preserve the v0.6.4 Core layout, Recipe integration and validation severity policy. Refresh existing Analysis Snapshots with Re-analyze after upgrading.
+
 ## v0.6.4
 
 - Modular Flavour skills and actor-specific performance/continuity contracts.

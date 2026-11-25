@@ -94,7 +94,8 @@ def _continuity_contract_text(continuity_context, picture_slots=None) -> str:
             "environment_subjects": env_subjects,
             "picture_roles": inherited_roles,
         }
-        blocks.append(f"{label} STABLE SCENE FACTS:\n" + json.dumps(safe, ensure_ascii=False, indent=2))
+        from .reference_bindings import endpoint_scene_facts
+        blocks.append(f"{label} STABLE SCENE FACTS (endpoint Subject numbers are historical, NOT current H3 labels):\n" + json.dumps(endpoint_scene_facts(safe), ensure_ascii=False, indent=2))
     return "\n\n".join(blocks) if blocks else "[No inherited stable scene facts available.]"
 
 
@@ -162,7 +163,7 @@ def _delivery_speaker_subject(speaker: str, analysis: dict):
     labels and tied matches remain unresolved. This is guidance to Pass #2,
     not a rewrite of its output or the Validator's safety checks.
     """
-    from .speaker_ids import _named_subjects
+    from .speaker_ids import _named_subjects, _subject_label_candidates
 
     subjects = []
     for entry in analysis.get("subjects") or []:
@@ -177,8 +178,9 @@ def _delivery_speaker_subject(speaker: str, analysis: dict):
         subjects.append((number, entry))
     allowed = {number for number, _ in subjects}
     # A reference-backed Subject is required even for delivery guidance.
-    permitted = ((analysis.get("reference_contract") or {}).get("allowed_subjects") or [])
-    if permitted:
+    reference_contract = analysis.get("reference_contract") or {}
+    permitted = reference_contract.get("allowed_subjects") or []
+    if "allowed_subjects" in reference_contract:
         grounded = set()
         for entry in permitted:
             if isinstance(entry, dict):
@@ -193,9 +195,25 @@ def _delivery_speaker_subject(speaker: str, analysis: dict):
     if explicit:
         number = int(explicit.group(1))
         return number if number in allowed else None
+    # An explicitly numbered user Picture is stronger than a fuzzy role name.
+    # Only one accepted, non-environment Subject may own that picture.
+    picture = re.search(r"\b(?:in|from)\s+<?Picture\s+(\d+)>?$", speaker, re.I)
+    if picture:
+        owners = {n for n, entry in subjects if str(picture[1]) in
+                  {str(p) for p in entry.get("source_pictures") or []}}
+        return next(iter(owners)) if len(owners) == 1 else None
+    # The Analyst already identifies actors and connects them to Subjects.
+    # Use exact actor IDs, never incidental words in a performance narrative.
+    key = lambda value: re.sub(r"[\s_-]+", " ", str(value or "").strip().casefold())
+    actor_matches = {int(t["reference_subject"]) for t in analysis.get("performance_tracks") or []
+                     if isinstance(t, dict) and str(t.get("reference_subject", "")).isdigit()
+                     and int(t["reference_subject"]) in allowed and t.get("actor_id")
+                     and key(t["actor_id"]) == key(speaker)}
     named = _named_subjects(analysis).get(speaker.casefold())
     if named in allowed:
-        return named
+        actor_matches.add(named)
+    if actor_matches:
+        return next(iter(actor_matches)) if len(actor_matches) == 1 else None
 
     # Require ALL descriptive anchor words and a unique match. Common role
     # nouns and grammatical glue are not identity-discriminating anchors.
@@ -206,7 +224,43 @@ def _delivery_speaker_subject(speaker: str, analysis: dict):
         "speaker", "voice", "guy", "girl", "boy", "shirt", "jacket", "wearing",
     }
     words = lambda t: set(re.findall(r"[^\W_]+", str(t or "").casefold()))
+    # In a person label, "the younger one" is an elliptical role, not an
+    # identity named One. Match the age descriptor, and keep uniqueness.
+    age_role = re.fullmatch(r"(?:the\s+)?(?:old|older|young|younger)\s+(?:one|man|woman|person)", speaker, re.I)
+    if age_role:
+        generic.add("one")
+        # Identity labels are self-attributions, unlike descriptive prose
+        # which can mention other actors. Canonicalize only bounded age-role
+        # labels, not arbitrary words from descriptions or stage direction.
+        def role_key(label):
+            match = re.fullmatch(r"(?:the\s+)?(old|older|young|younger)\s+(one|man|woman|person)",
+                                 re.sub(r"[_-]+", " ", label).strip(), re.I)
+            if not match:
+                return None
+            age, kind = match.groups()
+            return ({"old": "older", "young": "younger"}.get(age.casefold(), age.casefold()), kind.casefold())
+        wanted_age, wanted_kind = role_key(speaker)
+        explicit_roles = {}
+        for label, ids in _subject_label_candidates(analysis).items():
+            role = role_key(label)
+            if role:
+                for sid in ids & allowed:
+                    explicit_roles.setdefault(sid, set()).add(role)
+        matched = {sid for sid, roles in explicit_roles.items()
+                   if any(age == wanted_age and (wanted_kind in {"one", "person"} or kind == wanted_kind)
+                          for age, kind in roles)}
+        if matched:
+            if len(matched) != 1:
+                return None
+            sid = next(iter(matched))
+            if any(age != wanted_age for age, _ in explicit_roles[sid]):
+                return None  # Conflicting explicit self-labels are not evidence.
+            return sid
+    def age_alias(tokens):
+        return {{"old": "older", "young": "younger"}.get(token, token) for token in tokens}
     anchors = words(speaker) - generic
+    if age_role:
+        anchors = age_alias(anchors)
     if not anchors:
         return None
     matches = []
@@ -218,7 +272,10 @@ def _delivery_speaker_subject(speaker: str, analysis: dict):
             if asset.get("picture") in (entry.get("source_pictures") or []):
                 description += " " + str(asset.get("description") or "")
                 description += " " + str(asset.get("label") or "")
-        if anchors <= words(description):
+        evidence = words(description)
+        if age_role:
+            evidence = age_alias(evidence)
+        if anchors <= evidence:
             matches.append(number)
     return matches[0] if len(matches) == 1 else None
 
@@ -238,6 +295,8 @@ def _delivery_speech_lines(analysis: dict):
     lines = ["Authoritative user dialogue, in playback order (verbatim words):"]
     if speech.get("unresolved_collective_speakers"):
         lines.append("UNRESOLVED collective speaker attribution: " + ", ".join(speech["unresolved_collective_speakers"]) + ". Preserve the words; do not guess a reference binding.")
+    if speech.get("unresolved_dialogue_events"):
+        lines.append("UNRESOLVED speaker attribution for user quote(s): " + ", ".join(map(str, speech["unresolved_dialogue_events"])) + ". Do not omit or guess the words; refresh Analyst if needed.")
     speaker_ids = {}
     for number, entry in enumerate(utterances, 1):
         if isinstance(entry, dict):
@@ -262,9 +321,9 @@ def _delivery_speech_lines(analysis: dict):
                          + ("Deliver in unison with the other actors of this shared line, not as a reply."
                             if entry.get("delivery") == "simultaneous" else
                             "Preserve the user/Analyst coordination with the other actors of this shared line."))
-        if isinstance(entry, dict) and entry.get("shared_line") is not None and subject is not None:
+        if subject is not None:
             language = str(speech.get("language") or "").strip()
-            label = language if re.fullmatch(r"[A-Za-z][A-Za-z -]{1,30}", language) else "actual spoken language"
+            label = language if (re.fullmatch(r"[A-Za-z][A-Za-z -]{1,30}", language) and language.casefold() not in {"auto", "unknown", "none", "unspecified", "language", "actual spoken language"}) else "actual spoken language"
             lines.append(f"  Required literal shot event: <Subject {subject}> {marker} says, <d>[{label}] {words}</d>" +
                          (" (replace the language placeholder with the real language)." if label == "actual spoken language" else ""))
     lines.append("Never replace a spoken event with 'speaks the line' or a description of speaking. "
@@ -366,7 +425,7 @@ INTERNAL REFERENCE + DIRECTOR ANALYSIS:
 
 TASK:
 {task}
-Keep established subjects and location coherent from the physical seam; previous completed actions remain history. Endpoint frames remain Director-only. Target perspectives are soft composition guides; end keyframes are hard terminal anchors.
+Keep established identities and location coherent from the physical seam; previous completed actions remain history. Use ONLY current reference_contract Subject-to-Picture assignments; endpoint Subject numbers are historical and cannot override current labels. Endpoint frames remain Director-only. Target perspectives are soft composition guides; end keyframes are hard terminal anchors.
 
 REQUIRED OUTPUT BINDINGS:
 (machine-derived; apply before stylistic choices)

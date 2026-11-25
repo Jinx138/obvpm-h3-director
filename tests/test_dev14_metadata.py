@@ -4,7 +4,7 @@ SEMVER=re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[
 class Metadata(unittest.TestCase):
  def test_workflows(self):
   version=re.search(r'^version = "([^"]+)"', (ROOT/'pyproject.toml').read_text(),re.M)[1]
-  self.assertEqual(version,'0.6.4');self.assertIsNotNone(SEMVER.fullmatch(version));self.assertIsNone(SEMVER.fullmatch('0.6.4.dev11'))
+  self.assertEqual(version,'0.6.5');self.assertIsNotNone(SEMVER.fullmatch(version));self.assertIsNone(SEMVER.fullmatch('0.6.4.dev11'))
   for p in (ROOT/'examples').glob('*.json'):
    data=json.loads(p.read_text());graphs=[data,*data.get('definitions',{}).get('subgraphs',[])]
    for g in graphs:

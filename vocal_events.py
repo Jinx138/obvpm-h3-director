@@ -6,7 +6,7 @@ The legacy marker-only path remains available for already canonical events.
 import re
 from .speaker_ids import (_detail_span, _speech_entry,
                           _grounded_vocal_cue, normalize_speaker_ids)
-from .validator import DIALOGUE_RE, _speech_checks
+from .validator import DIALOGUE_RE, SPEAKER_RE, SUBJECT_RE, _speech_checks
 from .vocal_cues import VOCAL_CUE
 
 # Only delimited spans are eligible; no search-and-replace of arbitrary prose.
@@ -37,6 +37,154 @@ def _source(name, analysis):
     return result
 
 
+# A Composer may emit the spoken lines as a detached list with trailing IDs.
+# A suffix is not the prefix of the next line. Only repair a fully bounded
+# block, never move dialogue across action or shot boundaries.
+_POSTFIX_LINE = re.compile(r"[ \t]*(<d>[^\r\n]*?</d>)[ \t]+\(S([1-9]\d*)\)[ \t]*", re.I)
+
+
+def normalize_detached_postfix_events(prompt, analysis):
+    """Canonicalize a single-shot detached postfix block using user authority.
+
+    Keep every original dialogue tag byte-identical. A unique reference-backed
+    actor, existing staging mention, exact event count/words/order and matching
+    existing IDs are required. No mixed inline or cross-shot repair.
+    """
+    text = str(prompt or '')
+    span = _detail_span(text)
+    if not span or not isinstance(analysis, dict):
+        return text, 0
+    start, end = span
+    detail = text[start:end]
+    speech = (analysis.get('intent') or {}).get('speech_request') or {}
+    if (speech.get('authority') != 'user_direction' or speech.get('mode') != 'preserve'
+            or not speech.get('required') or speech.get('unresolved_collective_speakers') or speech.get('unresolved_dialogue_events')):
+        return text, 0
+    expected = [_speech_entry(x) for x in speech.get('utterances') or []]
+    events = list(DIALOGUE_RE.finditer(detail))
+    if not expected or len(events) != len(expected):
+        return text, 0
+    if len(re.findall(r'<d>', detail, re.I)) != len(events) or len(re.findall(r'</d>', detail, re.I)) != len(events):
+        return text, 0
+    if [m.group(2).strip() for m in events] != [words for _, words in expected]:
+        return text, 0
+    if len(re.findall(r'\[Shot\s+\d+\]', detail, re.I)) != 1:
+        return text, 0
+    block_start = detail.rfind('\n', 0, events[0].start()) + 1
+    if not block_start:
+        return text, 0
+    staging = detail[:block_start]
+    if SPEAKER_RE.search(staging):
+        return text, 0
+    sources = [_source(name, analysis) for name, _ in expected]
+    if None in sources or not set(sources) <= {int(n) for n in SUBJECT_RE.findall(staging)}:
+        return text, 0
+    lines = detail[block_start:].splitlines(keepends=True)
+    assignments = {}
+    rendered = []
+    count = 0
+    for line in lines:
+        if not line.strip():
+            rendered.append(line)
+            continue
+        if count >= len(events):
+            return text, 0
+        content = line.rstrip('\r\n')
+        m = _POSTFIX_LINE.fullmatch(content)
+        if not m or m.group(1) != events[count].group(0):
+            return text, 0
+        source = sources[count]
+        speaker = assignments.setdefault(source, len(assignments) + 1)
+        if int(m.group(2)) != speaker:
+            return text, 0
+        indent = re.match(r'[ \t]*', content).group(0)
+        rendered.append(f'{indent}<Subject {source}> (S{speaker}) {m.group(1)}' + line[len(content):])
+        count += 1
+    if count != len(events):
+        return text, 0
+    fixed = text[:start] + staging + ''.join(rendered) + text[end:]
+    mapping = {name.casefold(): source for (name, _), source in zip(expected, sources)}
+    if _speech_checks(fixed, speech, mapping):
+        return text, 0
+    return fixed, count
+
+
+def normalize_authorized_terminal_punctuation(prompt, analysis):
+    """Restore only a single added terminal punctuation mark in inline speech.
+
+    The exact user quote remains authoritative. Require equal event counts,
+    unique reference-backed speakers, explicit canonical attribution or local
+    vocal cues, and a successful full speech check after previewing the
+    existing marker normalizer.
+    No lexical changes, punctuation substitutions, or reordering.
+    """
+    text = str(prompt or '')
+    span = _detail_span(text)
+    if not span or not isinstance(analysis, dict):
+        return text, 0
+    speech = (analysis.get('intent') or {}).get('speech_request') or {}
+    if (speech.get('authority') != 'user_direction' or speech.get('mode') != 'preserve'
+            or not speech.get('required') or speech.get('unresolved_collective_speakers') or speech.get('unresolved_dialogue_events')):
+        return text, 0
+    start, end = span
+    detail = text[start:end]
+    events = list(DIALOGUE_RE.finditer(detail))
+    expected = [_speech_entry(x) for x in speech.get('utterances') or []]
+    if not events or len(events) != len(expected):
+        return text, 0
+    if len(re.findall(r'<d>', detail, re.I)) != len(events) or len(re.findall(r'</d>', detail, re.I)) != len(events):
+        return text, 0
+    sources = [_source(name, analysis) for name, _ in expected]
+    if None in sources:
+        return text, 0
+    edits = []
+    previous = 0
+    for event, (_, words), source in zip(events, expected, sources):
+        lead = detail[previous:event.start()]
+        previous = event.end()
+        occurrences = list(re.finditer(rf'<Subject\s+{source}>', lead))
+        if not occurrences:
+            return text, 0
+        # An already canonical <Subject N> (Sx) is explicit attribution.
+        # Do not require a second, vocabulary-dependent proof of speech for
+        # an event which already has a canonical dialogue tag and marker.
+        # The full speech check below verifies the actual ID sequence and
+        # actor binding; missing markers still need a grounded delivery cue.
+        markers = list(SPEAKER_RE.finditer(lead))
+        if markers:
+            if len(markers) != 1:
+                return text, 0
+            marker = markers[0]
+            if not re.search(rf'<Subject\s+{source}>\s*$', lead[:marker.start()]):
+                return text, 0
+            tail = lead[marker.end():]
+            if SUBJECT_RE.search(tail) or re.search(r'[.!?]\s+(?=[A-Z<])', tail):
+                # Preserve the existing cue-based path for explicit object
+                # mentions, but never infer new attribution from a marker.
+                if not _grounded_vocal_cue(lead, occurrences[-1], source):
+                    return text, 0
+        elif not _grounded_vocal_cue(lead, occurrences[-1], source):
+            return text, 0
+        actual = event.group(2).strip()
+        if actual == words:
+            continue
+        if not words or not words[-1].isalnum() or actual not in {words + '.', words + '!'}:
+            return text, 0
+        # Delete just the extra character; keep surrounding tag formatting.
+        position = event.start(2) + len(event.group(2).rstrip()) - 1
+        edits.append(position)
+    if not edits:
+        return text, 0
+    for position in reversed(edits):
+        detail = detail[:position] + detail[position + 1:]
+    draft = text[:start] + detail + text[end:]
+    preview, _ = normalize_speaker_ids(draft, analysis)
+    mapping = {name.casefold(): source for (name, _), source in zip(expected, sources)}
+    if _speech_checks(preview, speech, mapping):
+        return text, 0
+    return draft, len(edits)
+
+
 def normalize_vocal_events(prompt, analysis):
     """Return (prompt, tags_added, ids_added); new tag repairs are all-or-nothing.
 
@@ -61,7 +209,7 @@ def normalize_vocal_events(prompt, analysis):
         fixed, ids = normalize_speaker_ids(text, analysis)
         return fixed, 0, ids
     if (speech.get('authority') != 'user_direction' or speech.get('mode') != 'preserve'
-            or not speech.get('required') or speech.get('unresolved_collective_speakers') or not expected):
+            or not speech.get('required') or speech.get('unresolved_collective_speakers') or speech.get('unresolved_dialogue_events') or not expected):
         return text, 0, 0
     language = str(speech.get('language') or '').strip()
     if not _LANGUAGE.fullmatch(language) or language.casefold() in _UNKNOWN:

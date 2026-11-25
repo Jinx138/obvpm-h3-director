@@ -1,22 +1,20 @@
-# OBVPM Director v0.6.4
+# OBVPM Director v0.6.5
 
-**A new directing engine and a more compact workspace.**
+**Dialogue and continuity reliability update for v0.6.4.**
 
 ## Highlights
 
-- **Flavour and performance:** select genre, directing style and performance independently. Modular skills guide both analysis and composition, including individual actor performance and interaction dynamics.
-- **Continuity and reference fidelity:** improved action ownership, reference reconciliation, prompt formatting and continuity task handling. Exact user-supplied dialogue remains authoritative, including shared lines when individual speakers can be resolved. Deterministic vocal-event normalization restores missing dialogue tags and speaker IDs for unambiguous, verbatim, locally attributed speech.
-- **Director Core:** native ComfyUI subgraph containing the two LLM passes, analysis snapshot, validator and status. Inspect a compact Pass #1 Direction preview or open its read-only semantic plan without running another LLM. View Status exposes the full validator report and distinguishes clean passes, successfully normalized passes, warnings and remaining failures. A correctly bound but uncited environment in shot prose is a warning, not a hard failure.
-- **Focused Shot Editor:** prompt-only editing surface; green DIRECT, conditional green Apply, yellow Recompose (keep Pass #1). The Core exposes Re-analyze and Reset Director Context.
-- **Current llama.cpp example:** separate Native Sessions, Model Profiles and Prefill Profiles, with automatic unloading after both passes. Gen #1 starts at 8192 context; Gen #2 is text-only. Setup hints are included in the Core and README.
-- **Workflow robustness:** append-only Picture socket growth, valid SemVer metadata for copy/paste, compact history controls. Existing queue isolation and Recipe interfaces are retained.
+- **Dialogue authority:** reconcile exact user speech with the Analyst’s structured actor-level speaker plan. Preserve repeated utterances and indirect speaker references when grounded; unresolved speech is reported rather than silently dropped. Distinguish spoken dialogue from quoted visual text using semantic evidence.
+- **Vocal event normalization:** repair unambiguous missing speaker IDs, detached postfix IDs and narrowly scoped extra terminal punctuation without changing spoken words or overriding conflicting assignments. Prefer explicit role labels to incidental narrative mentions.
+- **Continuity references:** reconcile current Picture ownership against historical shot-local Subject numbers for Extend, Prepend and Bridge. Incompatible bindings are no longer unioned merely because local numbers coincide.
+- **Unchanged workspace:** the v0.6.4 Core layout, Flavour controls, Recipe integration, queue behavior and validation severity policy are retained.
 
 ## Upgrade
 
-Install/update H3 OBVPM Director, restart ComfyUI and hard-refresh the browser. Open the new [Core Workspace](examples/H3-Director-Core-Workspace.json), configure both sessions and copy the block into your workflow. Older flat examples are superseded; the individual Director nodes remain available. Connect the required Flavour input and reset/re-analyze snapshots from previous skill versions. For OBVPM, keep the literal Recipe Prompt in its separate `[restore]` group.
+Update the Director, restart ComfyUI and hard-refresh the browser. Use **Re-analyze → DIRECT** to refresh previously materialized analysis and rebuild the dialogue and reference contracts. Existing v0.6.4 Core wiring remains compatible. The bundled [Core Workspace](examples/H3-Director-Core-Workspace.json) has updated version metadata.
 
-See the [README](README.md) for the setup guide and known limitations. The Director is independent of the LLM backend and does not distribute any OBVPM Pro workflow, model weights or reference assets. Status reports basic wiring and prompt validation, not a comprehensive backend version check or a video quality guarantee.
+## Validation and limitations
 
-## Validation and known limitations
+Live testing included alternating and repeated speakers during hotfix development, and a successful Extend on the final development baseline introducing a new reference-backed android, two spoken lines and a separate synchronized foreground logo. Broader language, Prepend and Bridge coverage remains primarily automated or pending live verification. The final package passes 216 of 217 Python regression tests and all 13 frontend test scripts. The known duplicate hand-detail Subject regression remains open. Malformed Analyst JSON is rejected; indirect attribution depends on grounded structured Analyst evidence. Simultaneous speech timing and generated video quality remain model-dependent. The Director does not implement a persistent cross-timeline identity store. See [ROADMAP.md](ROADMAP.md) and [README.md](README.md).
 
-The release package passes 181 of 182 Python regression tests and all 13 frontend test scripts. One known reference-authority case (`test_duplicate_analyst_hand_subject_removed`) remains open: a secondary detail image may retain a duplicate character Subject. Review bindings and validation before approval. Snapshot persistence after actual ComfyUI reload and OBVPM version restore is not fully live-certified. Simultaneous speech remains generation-model dependent. The colored buttons may differ slightly in width from native controls. See [ROADMAP.md](ROADMAP.md).
+No OBVPM Pro workflows or model weights are distributed.

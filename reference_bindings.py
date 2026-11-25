@@ -179,3 +179,90 @@ def reconcile_subject_references(analysis, context, picture_roles):
     # be surfaced by required_picture_bindings + Validator instead.
     analysis["subjects"] = subjects
     return issues
+
+
+def reconcile_endpoint_subjects(current, scenes, picture_roles, connected):
+    """Map endpoint facts onto current reference bindings, not endpoint IDs.
+
+    Current Picture ownership is authoritative. Previous/target Subject IDs
+    are local to their own shots. Unclaimed, compatible endpoint references
+    may retain their old ID if free, otherwise use a free local ID. Never
+    union unrelated Picture owners just because their numeric IDs coincide.
+    Ambiguous endpoint-only multi-reference overlaps stay unbound.
+    """
+    bindings = {sid: set(pics) for sid, pics in current.items()}
+    connected = set(connected)
+    roles = {int(x['picture']): x for x in picture_roles}
+    issues = []
+    inherited = []
+    inherited_roles = {}
+    for scene in scenes:
+        old_roles = {_int(x.get('picture')): x for x in scene.get('picture_roles') or [] if isinstance(x, dict)}
+        for item in scene.get('subjects') or []:
+            if not isinstance(item, dict):
+                continue
+            sid = _int(item.get('subject'))
+            pics = set(_numbers(item.get('source_pictures'))) & connected
+            if sid is None or sid <= 0 or not pics:
+                continue
+            # Explicit current role/label changes can mean a reused slot.
+            # Never carry that prior identity into the current bindings.
+            compatible = set()
+            for pic in pics:
+                old, new = old_roles.get(pic, {}), roles.get(pic, {})
+                old_role, new_role = old.get('role'), new.get('role')
+                if old_role and old_role != 'unknown' and new_role and new_role != 'unknown' and old_role != new_role:
+                    continue
+                if new_role in {'style','storyboard','end_keyframe','target_perspective'}:
+                    continue
+                if old.get('label') and new.get('label') and _norm(old['label']) != _norm(new['label']):
+                    continue
+                compatible.add(pic)
+                inherited_roles.setdefault(pic, set()).add((
+                    str(old_role or 'unknown'), _norm(old.get('label'))))
+            if compatible:
+                inherited.append((sid, compatible))
+    # If there is any current owner for an endpoint reference, the current
+    # Analyst already has authority. Do not attach unconfirmed detail refs.
+    claimed = set().union(*bindings.values()) if bindings else set()
+    proposals = [(sid, pics) for sid, pics in inherited if not (pics & claimed)]
+    for old_id, pics in proposals:
+        conflicting = False
+        for pic in pics:
+            evidence = inherited_roles.get(pic, set())
+            if (len({role for role, _ in evidence if role != 'unknown'}) > 1
+                    or len({label for _, label in evidence if label}) > 1):
+                conflicting = True
+                break
+        if conflicting:
+            issues.append(f'Endpoint Subject {old_id}: conflicting endpoint identities; not inherited')
+            continue
+        if any(pics & other and pics != other for _, other in proposals):
+            issues.append(f'Endpoint Subject {old_id}: ambiguous overlapping endpoint reference sets; not inherited')
+            continue
+        if pics & claimed:
+            continue
+        sid = old_id if old_id not in bindings else max(bindings, default=0) + 1
+        bindings[sid] = set(pics)
+        claimed.update(pics)
+        if sid != old_id:
+            issues.append(f'Endpoint Subject {old_id} remapped to current Subject {sid} for Pictures {sorted(pics)}')
+    return bindings, issues
+
+
+def endpoint_scene_facts(scene):
+    """Expose previous identity descriptions without stale current H3 labels."""
+    clean = dict(scene)
+    for key in ('subjects', 'environment_subjects'):
+        entries = []
+        for item in scene.get(key) or []:
+            if not isinstance(item, dict):
+                continue
+            value = dict(item)
+            if 'subject' in value:
+                value['endpoint_subject'] = value.pop('subject')
+            if 'definition' in value:
+                value['definition'] = re.sub(r'^<Subject\s+\d+>\s+is\s+', '', str(value['definition']), flags=re.I)
+            entries.append(value)
+        clean[key] = entries
+    return clean

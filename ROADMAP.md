@@ -1,4 +1,4 @@
-# Roadmap — after v0.6.4
+# Roadmap — after v0.6.5
 
 These items are deferred, not promised for a particular release.
 
@@ -10,6 +10,8 @@ These items are deferred, not promised for a particular release.
 
 ## UI polish
 
+- Indicate stale captured analysis when the current Direction or other relevant inputs differ from the frozen snapshot; do not silently unfreeze it.
+
 - Match the colored DIRECT, Apply, Re-analyze and Reset buttons to native ComfyUI button widths across resize, canvas modes and subgraphs. The attempted width adjustment did not resolve the live discrepancy and is excluded from v0.6.4.
 
 ## Reference authority
@@ -17,6 +19,8 @@ These items are deferred, not promised for a particular release.
 - Investigate the outstanding `test_duplicate_analyst_hand_subject_removed` regression. A secondary detail reference explicitly belonging to an existing character should not remain a separate Subject; keep ambiguity safeguards.
 
 ## Verification
+
+- Broaden live regression coverage for multilingual dialogue, Prepend, Bridge and POV. Observe Analyst JSON stability and Composer runtime/context usage.
 
 - Verify snapshot persistence in real ComfyUI save/reload and OBVPM restore scenarios.
 - Consider a version-aware backend compatibility check; current status only checks basic wiring and captured validation.

@@ -37,13 +37,14 @@ from .flavour_skills import (
 # H3-DIRECTOR-FLAVOUR-DEV8
 # H3-DIRECTOR-SKILL-ISOLATION-DEV9
 from .speaker_ids import _named_subjects
-from .vocal_events import normalize_vocal_events
+from .vocal_events import (normalize_vocal_events, normalize_detached_postfix_events,
+                           normalize_authorized_terminal_punctuation)
 from .dialogue_authority import authoritative_speech_request, enforce_user_dialogue, bind_collective_dialogue, normalize_shared_line_placeholder
 from .action_fidelity import explicit_pin_roles
 from .reference_roles import (
     make_reference_brief, resolve_reference_roles, enrich_context, status_summary,
 )
-from .reference_bindings import reconcile_subject_references
+from .reference_bindings import reconcile_subject_references, reconcile_endpoint_subjects, endpoint_scene_facts
 from .contracts import (
     DIRECTOR_CONTEXT_SCHEMA,
     DIRECTOR_CONTEXT_SCHEMA_VERSION,
@@ -943,7 +944,10 @@ class H3DirectorAnalysisCompose:
         # The user's quoted lines are immutable current-interval input, not
         # discretionary Analyst output.  Recover them even if Pass #1 returned
         # mode=preserve with an empty or paraphrased utterances array.
-        enforce_user_dialogue(analysis_obj, str(ctx.get("direction", "")))
+        ctx["analyst_speech_request"] = (analysis_obj.get("intent") or {}).get("speech_request") or {}
+        authority = enforce_user_dialogue(analysis_obj, str(ctx.get("direction", "")), ctx["analyst_speech_request"])
+        if authority.get("authority") == "user_direction":
+            ctx["authoritative_dialogue"] = authority
 
         # Current user picture-role overrides are resolved BEFORE Subject
         # source bindings and deterministic obligations are assembled.
@@ -1010,24 +1014,18 @@ class H3DirectorAnalysisCompose:
                 },
             }
 
-            # Existing inherited Subject mappings remain eligible when their
-            # referenced Picture slots are still connected for this run.
+            # Endpoint IDs are shot-local. Reconcile reference ownership with
+            # the current Analyst instead of unioning by numeric Subject ID.
+            continuity_contract = analysis_obj["continuity_contract"]
+            allowed_subject_map, endpoint_issues = reconcile_endpoint_subjects(
+                allowed_subject_map,
+                [continuity_contract[k] for k in ("start_scene", "target_scene")],
+                picture_roles, available_picture_set)
+            if endpoint_issues:
+                ctx.setdefault("reference_binding_issues", []).extend(endpoint_issues)
             for role_key in ("start_scene", "target_scene"):
-                scene = analysis_obj["continuity_contract"].get(role_key) or {}
-                for item in scene.get("subjects") or []:
-                    if not isinstance(item, dict):
-                        continue
-                    try:
-                        subject_no = int(item.get("subject"))
-                    except Exception:
-                        continue
-                    for value in item.get("source_pictures") or []:
-                        try:
-                            pic_no = int(value)
-                        except Exception:
-                            continue
-                        if pic_no in available_picture_set:
-                            allowed_subject_map.setdefault(subject_no, set()).add(pic_no)
+                continuity_contract[role_key] = endpoint_scene_facts(continuity_contract[role_key])
+            continuity_contract["subject_numbering_rule"] = "Endpoint Subject numbers are historical only; use current reference_contract for H3 Subject labels."
 
         ctx["reference_roles_resolved"] = picture_roles
 
@@ -1076,13 +1074,10 @@ class H3DirectorAnalysisCompose:
             continuity_note=str(ctx.get("continuity_note", "")),
         )
         composer_system = compose_flavour_system(flavour, "composer", operation=str(ctx.get("operation", "new")))
-        # Promote only the grounded shared-dialogue delivery contract into the
+        # Promote the current-shot user dialogue delivery contract into the
         # system message as well as the user prompt. No third inference pass.
         speech = (analysis_obj.get("intent") or {}).get("speech_request") or {}
-        if speech.get("authority") == "user_direction" and any(
-            isinstance(e, dict) and e.get("shared_line") is not None
-            for e in speech.get("utterances") or []
-        ):
+        if speech.get("authority") == "user_direction" and speech.get("utterances"):
             composer_system += "\n\nMANDATORY CURRENT-SHOT DIALOGUE CONTRACT:\n" + "\n".join(_delivery_speech_lines(analysis_obj))
         print("[H3 Director] Composer system: "
               f"{len(composer_system)} chars | "
@@ -1137,7 +1132,7 @@ class H3DirectorResponseValidator:
         # verbatim requirement or permit an incorrect speaker normalization.
         current_direction = str(ctx.get("direction") or "")
         incoming_speech = (analysis_for_refs.get("intent") or {}).get("speech_request")
-        effective_speech = enforce_user_dialogue(analysis_for_refs, current_direction)
+        effective_speech = enforce_user_dialogue(analysis_for_refs, current_direction, ctx.get("analyst_speech_request"))
         effective_speech = bind_collective_dialogue(analysis_for_refs, effective_speech)
         # As with user dialogue, the physical actor/target roles originate in
         # the frozen user Direction, NOT in editable/generated Analysis fields.
@@ -1178,6 +1173,8 @@ class H3DirectorResponseValidator:
             (analysis_for_refs.get("reference_contract") or {}).get("required_picture_bindings"),
         )
         prompt, shared_lines_added = normalize_shared_line_placeholder(prompt, effective_speech, analysis_for_refs)
+        prompt, postfix_events_fixed = normalize_detached_postfix_events(prompt, analysis_for_refs)
+        prompt, punctuation_fixed = normalize_authorized_terminal_punctuation(prompt, analysis_for_refs)
         prompt, dialogue_tags_added, speaker_ids_added = normalize_vocal_events(prompt, analysis_for_refs)
         allowed_subjects = {
             int(item.get("subject"))
@@ -1238,6 +1235,12 @@ class H3DirectorResponseValidator:
         if shared_lines_added:
             validation += (f"\nAUTO-NORMALIZED — expanded {shared_lines_added} verbatim, individually grounded "
                            "shared dialogue events at existing vocal placeholders.")
+        if postfix_events_fixed:
+            validation += (f"\nAUTO-NORMALIZED — canonicalized {postfix_events_fixed} detached dialogue event(s) "
+                           "with postfix speaker IDs; original words and speaker order unchanged.")
+        if punctuation_fixed:
+            validation += (f"\nAUTO-NORMALIZED — restored exact user punctuation in {punctuation_fixed} "
+                           "grounded dialogue event(s); no spoken words changed.")
         if dialogue_tags_added:
             validation += (f"\nAUTO-NORMALIZED — restored {dialogue_tags_added} canonical dialogue tag(s) "
                            "for verbatim, locally grounded user speech.")

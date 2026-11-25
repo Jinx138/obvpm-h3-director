@@ -25,9 +25,9 @@ _FAMILIES = (
     'chant chants chanted chanting', 'intone intones intoned intoning',
     'recite recites recited reciting', 'rap raps rapped rapping',
 )
-# Calling/naming can introduce a non-spoken title. Retain those legacy cues
-# only for already-delimited H3 events, never for extracting user quotes.
+# Direct call(s) and explicit call-out phrases may introduce spoken quotes.
+# Bare called/calling also introduce names and titles; keep them marker-only.
 _AUTHORITY_WORDS = set(' '.join(_FAMILIES).split())
-AUTHORITY_CUE = r'\b(?:' + '|'.join(sorted(_AUTHORITY_WORDS, key=lambda w: (-len(w), w))) + r')\b'
+AUTHORITY_CUE = r'\b(?:call(?:s|ed|ing)?\s+out|calls?|'+ '|'.join(sorted(_AUTHORITY_WORDS, key=lambda w: (-len(w), w))) + r')\b'
 _DELIVERY_PHRASE = r'deliver(?:s|ed|ing)?\s+(?:the\s+line|the\s+words|the\s+dialogue)'
 VOCAL_CUE = re.compile(r'(?:\b' + _DELIVERY_PHRASE + r'\b|' + AUTHORITY_CUE + r'|\b(?:adds?|added|adding|calls?|called|calling|hums?|hummed|humming)\b)', re.I)
