@@ -8,7 +8,12 @@ The workflow is built for **hands-on directing**: inspect the visual analysis, r
 
 **Director workspace:** Flavour + Request Builder → Director Core (native subgraph) → Shot Editor → optional Recipe Prompt.
 
-**[Quick start](#quick-start)** · **[Open the example workflow](examples/H3-Director-Core-Workspace.json)** · **[Release notes](RELEASE_NOTES.md)**
+**[Quick start](#quick-start)** · **[Video tutorials](#video-tutorials)** · **[Open the example workflow](examples/H3-Director-Core-Workspace.json)** · **[Release notes](RELEASE_NOTES.md)**
+## Video tutorials
+
+- **[v0.6.5 — What's new in OBVPM Director](https://youtu.be/GEOEDY68o9Q)** (5:45) — Flavour controls, compact Director Core, Direction History, llama.cpp setup, dialogue validation, and a live scene with Seed Hunt.
+- **[v0.6.0 — Introduction and OBVPM workflow tutorial](https://youtu.be/jMFrAsUYXUQ)** (13:16) — Reference-based directing, first-shot generation, Extend, Bridge, prompt reuse, and timeline integration. This video uses the earlier Director interface; follow the current quick start for v0.6.5 installation.
+
 
 ## What you can do
 
@@ -201,6 +206,5 @@ See [ROADMAP.md](ROADMAP.md) for follow-up work.
 - **Example workflow:** [H3 Director Core Workspace](examples/H3-Director-Core-Workspace.json). The older flat examples are superseded. Existing saved workflows are not deleted.
 - **Upgrade from v0.6.4:** restart ComfyUI, hard-refresh the browser and use Re-analyze before DIRECT to rebuild the dialogue and continuity contracts. Existing Core wiring is unchanged.
 - **Upgrade from v0.6.3:** install the current llama.cpp nodepack for the bundled example; copy the new workspace, configure both sessions and reset/re-analyze old snapshots. The Flavour input is now required.
-- **Video tutorial (previous UI):** [Original OBVPM integration walkthrough](https://youtu.be/jMFrAsUYXUQ). The current Core layout and native sessions supersede its Director setup screens.
 
 **[MIT License](LICENSE)** · **[Release notes](RELEASE_NOTES.md)** · **[Changelog](CHANGELOG.md)**
