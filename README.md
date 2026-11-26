@@ -191,7 +191,6 @@ Selecting historical clips restores their saved Recipe prompts through OBVPM whi
 
 - The Core status checks basic wiring and captured prompt validation, not backend versions or generated video quality. Review remaining warnings or failures before applying an approved prompt.
 - If a particular ComfyUI reload restores the materialized switch but not its saved analysis text, turn off materialization or use **Re-analyze**, then run DIRECT again. The snapshot serialization fix has automated regression coverage; persistence across all frontend versions and OBVPM restore paths is not certified.
-- A detail image of a known character can still be retained as an extra Subject in one reference-authority regression case. Prefer explicit ownership (e.g. `the hands of Alex`) and inspect the reference bindings before approval.
 - Indirect speaker attribution and classification of additional quoted text depend on the structured Analyst output. Malformed Pass #1 JSON is rejected; re-analyze with a different seed if needed.
 - Simultaneous speech is model-dependent; separate correctly attributed dialogue events do not guarantee overlapping audio.
 - The full Director Context is currently workflow-local. OBVPM's separate Recipe Prompt restore mechanism remains available; per-timeline/per-version Director Context storage is planned, not implemented.
