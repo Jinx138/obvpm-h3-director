@@ -2,6 +2,9 @@
 
 **Dialogue and continuity reliability update for v0.6.4.**
 
+**[Watch the v0.6.5 video walkthrough](https://youtu.be/GEOEDY68o9Q)** · [Original introduction and OBVPM tutorial (v0.6.0)](https://youtu.be/jMFrAsUYXUQ)
+
+
 ## Highlights
 
 - **Dialogue authority:** reconcile exact user speech with the Analyst’s structured actor-level speaker plan. Preserve repeated utterances and indirect speaker references when grounded; unresolved speech is reported rather than silently dropped. Distinguish spoken dialogue from quoted visual text using semantic evidence.
