@@ -1,0 +1,6 @@
+{
+  "extend": "Write the next interval directly from START, maintaining the specified ongoing action while detailing its visible changes and reciprocal performance.",
+  "prepend": "Write the preceding interval of the user-owned action, with physically continuous performance arriving at TARGET.",
+  "bridge": "Write one continuous, physically coherent performance of the specified action from START to TARGET.",
+  "missing_endpoint_note": "Continuity endpoint metadata unavailable."
+}

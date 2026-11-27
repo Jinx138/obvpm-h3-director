@@ -1,23 +1,23 @@
-# OBVPM Director v0.6.5
+# OBVPM Director v0.6.6 — Creative Freedom & Composer Fidelity
 
-**Dialogue and continuity reliability update for v0.6.4.**
-
-**[Watch the v0.6.5 video walkthrough](https://youtu.be/GEOEDY68o9Q)** · [Original introduction and OBVPM tutorial (v0.6.0)](https://youtu.be/jMFrAsUYXUQ)
-
+A leaner, more expressive Director, based on the locally tested dev.2 build.
 
 ## Highlights
 
-- **Dialogue authority:** reconcile exact user speech with the Analyst’s structured actor-level speaker plan. Preserve repeated utterances and indirect speaker references when grounded; unresolved speech is reported rather than silently dropped. Distinguish spoken dialogue from quoted visual text using semantic evidence.
-- **Vocal event normalization:** repair unambiguous missing speaker IDs, detached postfix IDs and narrowly scoped extra terminal punctuation without changing spoken words or overriding conflicting assignments. Prefer explicit role labels to incidental narrative mentions.
-- **Continuity references:** reconcile current Picture ownership against historical shot-local Subject numbers for Extend, Prepend and Bridge. Incompatible bindings are no longer unioned merely because local numbers coincide.
-- **Unchanged workspace:** the v0.6.4 Core layout, Flavour controls, Recipe integration, queue behavior and validation severity policy are retained.
+- **Creative direction:** delegate staging, cinematography, rhythm, performance and atmosphere to the Analyst wherever user intent leaves room. Replace preventative creative restrictions with focused, positive guidance.
+- **Flavour specialization:** selected genre, directing style and performance skills supply relevant expertise without loading unrelated styles. Preserve technical contracts and creative coverage.
+- **Composer fidelity:** carry actor-specific motion, reactions, timing and sensory details from the Analyst into the final H3 prompt, rather than flattening or re-directing the performance.
+- **External skill architecture:** editable skill files and request templates, a compact prompt assembler, deterministic contract and speaker-resolution modules, and template-aware provenance.
+- **Speaker identity:** explicitly distinguish recurring vocal sources from dialogue-event numbering (S1/S2/S1/S2). Existing dialogue authority, normalization and validation remain in place.
 
 ## Upgrade
 
-Update the Director, restart ComfyUI and hard-refresh the browser. Use **Re-analyze → DIRECT** to refresh previously materialized analysis and rebuild the dialogue and reference contracts. Existing v0.6.4 Core wiring remains compatible. The bundled [Core Workspace](examples/H3-Director-Core-Workspace.json) has updated version metadata.
+Update the Director, restart ComfyUI and hard-refresh the browser. Run **Re-analyze → DIRECT** to refresh old Analysis Snapshots and skill manifests. Existing workspace wiring, model profiles, node interfaces, Recipe integration and approved stored prompts are retained. The [portable Core Workspace](examples/H3-Director-Core-Workspace.json) has updated version metadata.
 
-## Validation and limitations
+## Verification and scope
 
-Live testing included alternating and repeated speakers during hotfix development, and a successful Extend on the final development baseline introducing a new reference-backed android, two spoken lines and a separate synchronized foreground logo. Broader language, Prepend and Bridge coverage remains primarily automated or pending live verification. The final package passes 216 of 217 Python regression tests and all 13 frontend test scripts. Malformed Analyst JSON is rejected; indirect attribution depends on grounded structured Analyst evidence. Simultaneous speech timing and generated video quality remain model-dependent. The Director does not implement a persistent cross-timeline identity store. See [ROADMAP.md](ROADMAP.md) and [README.md](README.md).
+Across 1,152 profile/operation selections per pass, the dev.2 base system prompts averaged 44% fewer words for the Analyst and 43% fewer for the Composer than dev.1. These measurements exclude dynamic dialogue contracts, analysis JSON and custom Flavour notes; they are not tokenizer measurements or guarantees of inference speed. Initial local user testing reported two Validator PASS results and richer camera instructions, micro-motion and creative direction. Broader live coverage remains ongoing. See [skill architecture](docs/SKILL_ARCHITECTURE.md) and [migration review](SKILL_MIGRATION_DEV2.md).
+
+The Analysis JSON structure and existing reference, dialogue and continuity contracts remain intact. Backend-agnostic Core diagnostics ([issue #2](https://github.com/Jinx138/obvpm-h3-director/issues/2)) remain a separate task. No audio-input branch or additional inference pass is included. Generated video quality and simultaneous speech timing remain model-dependent.
 
 No OBVPM Pro workflows or model weights are distributed.

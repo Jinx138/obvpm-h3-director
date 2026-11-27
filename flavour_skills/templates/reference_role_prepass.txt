@@ -1,0 +1,3 @@
+REFERENCE ROLE PREPASS (before visual interpretation):
+Apply these explicit user Picture labels when resolving current reference roles. Current connected Pictures and current user roles take precedence over incompatible inherited descriptions.
+USER PICTURE LABELS: {role_notes}

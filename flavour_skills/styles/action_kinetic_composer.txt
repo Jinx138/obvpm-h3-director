@@ -1,5 +1,2 @@
-ACTION / KINETIC — COMPOSER PERFORMANCE SKILL
-Resolve who acts on whom and depict the prescribed physical motion in legible continuous mechanics. Detail bracing, weight transfer, traction, momentum, small balance corrections, exertion and the partner/object's immediate reaction as visible and relevant. Vary motion rate naturally within the action. Keep camera axis and scale coherent; do not cram multiple unrequested moves into a short clip.
-
-DISTINCT PHYSICAL TRACKS
-Describe different actors' motion separately, then connect them through the actual spatial relationship. For vehicles, use appropriate weight transfer (braking tends toward nose dive, acceleration toward rearward loading), tire grip and cornering lines; do not add collisions or impossible simultaneous positions. Do not substitute generic 'both accelerate' for actor-specific reactions when the analysis provides distinct mechanics.
+ACTION / KINETIC — COMPOSER
+Express the planned action in legible spatial and physical sequence. Retain the distinct tracks, direction, rate changes, bracing, weight transfer, traction, momentum, contact, exertion, recoil and recovery where present. Connect motion through its causal effects and the specified camera axis and scale. For vehicles preserve actual lines, braking nose dive or acceleration load transfer where planned, tire grip, pitch/roll and relative spacing. Carry the planned sound and visual rhythm with the motion.

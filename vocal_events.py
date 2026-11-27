@@ -20,7 +20,7 @@ _UNKNOWN = {'unknown', 'auto', 'none', 'unspecified', 'language', 'actual spoken
 
 
 def _source(name, analysis):
-    from .prompt_skill import _delivery_speaker_subject
+    from .speaker_resolution import _delivery_speaker_subject
     result = _delivery_speaker_subject(name, analysis)
     if result is None:
         return None

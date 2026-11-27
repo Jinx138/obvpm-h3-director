@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.6 — Creative Freedom & Composer Fidelity
+
+- Externalize static prompt instructions, request templates and performance/tone skills; separate speaker resolution and dynamic contract preparation from the prompt assembler.
+- Reduce universal micromanagement and delegate unspecified cinematic choices to selected Flavours through positive guidance.
+- Focus Composer on performance fidelity and clarify stable speaker identities across repeated vocal events.
+- Preserve Analysis JSON structure, dialogue/reference contracts, validator, workspace wiring, model profiles and Recipe integration. Refresh existing Analysis Snapshots after upgrading.
+
 ## v0.6.5
 
 - Reconcile exact user-authorized speech quotations with the Analyst’s structured actor-level speech plan; preserve repeated events and flag unresolved attribution instead of silently losing dialogue.

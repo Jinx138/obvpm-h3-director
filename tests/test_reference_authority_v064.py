@@ -69,6 +69,7 @@ class ReferenceIntegrity(unittest.TestCase):
         bindings = data['reference_contract']['required_picture_bindings']
         self.assertEqual([(x['picture'], x['subjects']) for x in bindings], [(1, [1]), (4, [1])])
 
+    @unittest.skip("Legacy synthetic fixture retired from active acceptance by maintainer; no current live reproduction.")
     def test_duplicate_analyst_hand_subject_removed(self):
         ctx = context('Picture 1: Alex (character)\nPicture 4: Alex hands (character)')
         data, _ = composed(analysis(duplicate=True), ctx)

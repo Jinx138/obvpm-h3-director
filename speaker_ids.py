@@ -166,7 +166,7 @@ def normalize_speaker_ids(h3_prompt, analysis):
     # Reuse rc22's conservative phrase -> Subject mapping. This resolves
     # "the younger man" when asset descriptions make it unique, but never a
     # generic/tied label or an offscreen person lacking a reference binding.
-    from .prompt_skill import _delivery_speaker_subject
+    from .speaker_resolution import _delivery_speaker_subject
     sources = []
     positions = []
     previous_end = 0

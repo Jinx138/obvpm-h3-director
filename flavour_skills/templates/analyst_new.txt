@@ -1,0 +1,8 @@
+USER DIRECTION:
+{direction}
+
+{role_instruction}
+AVAILABLE DURATION: {duration:.2f} seconds
+CONNECTED REFERENCE IMAGE SLOTS: {slots}.
+
+Return the analysis JSON for this shot.

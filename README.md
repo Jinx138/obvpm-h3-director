@@ -8,17 +8,12 @@ The workflow is built for **hands-on directing**: inspect the visual analysis, r
 
 **Director workspace:** Flavour + Request Builder → Director Core (native subgraph) → Shot Editor → optional Recipe Prompt.
 
-**[Quick start](#quick-start)** · **[Video tutorials](#video-tutorials)** · **[Open the example workflow](examples/H3-Director-Core-Workspace.json)** · **[Release notes](RELEASE_NOTES.md)**
-## Video tutorials
-
-- **[v0.6.5 — What's new in OBVPM Director](https://youtu.be/GEOEDY68o9Q)** (5:45) — Flavour controls, compact Director Core, Direction History, llama.cpp setup, dialogue validation, and a live scene with Seed Hunt.
-- **[v0.6.0 — Introduction and OBVPM workflow tutorial](https://youtu.be/jMFrAsUYXUQ)** (13:16) — Reference-based directing, first-shot generation, Extend, Bridge, prompt reuse, and timeline integration. This video uses the earlier Director interface; follow the current quick start for v0.6.5 installation.
-
+**[Quick start](#quick-start)** · **[Open the example workflow](examples/H3-Director-Core-Workspace.json)** · **[Release notes](RELEASE_NOTES.md)**
 
 ## What you can do
 
 - **Direct in your own words.** Describe gestures, intent, blocking, camera movement, dialogue, and atmosphere. The Director translates the direction into H3's structured prompt format.
-- **Shape the performance.** Select a genre, directing style and performance settings with the required Flavour node. The two passes use the selected skills to direct individual actors and their interaction.
+- **Shape the performance.** Select a genre, directing style and performance settings with the required Flavour node. Selected Flavours provide focused creative direction, with a lean universal contract and a Composer that carries the Analyst’s performance, camera and timing details into the H3 prompt.
 - **Use visual references.** Build scenes around specific characters, locations, and objects, with automatic picture-role analysis and optional explicit assignments.
 - **Maintain continuity.** Use OBVPM's Extend, Prepend, and Bridge context to keep identities, spaces, and unfolding action coherent between shots.
 - **Refine before generating.** Review the analysis and validator feedback, then edit the final prompt directly.
@@ -26,6 +21,12 @@ The workflow is built for **hands-on directing**: inspect the visual analysis, r
 - **Work with OBVPM Recipes.** Save and restore a shot's literal generation prompt through a dedicated Recipe Prompt node, independently of the Director workspace.
 
 The Director handles scene semantics, reference roles, dialogue, camera logic, continuity reasoning, and H3 prompt composition. **OBVPM handles the timeline, generation, takes, editing, Recipes, Motion Context, and provenance.** Your preferred compatible LLM nodes perform the two inference passes.
+
+## What’s new in v0.6.6
+
+The Director now uses leaner, positively phrased instructions and selected Flavour skills to give the Analyst more cinematic freedom while preserving explicit user intent, reference bindings and dialogue. The Composer focuses on carrying the Analyst’s direction into H3 rather than re-directing the scene. The prompt assembler is separated from editable skill files and deterministic contracts. Returning speakers retain their original vocal IDs.
+
+**After upgrading:** restart ComfyUI, hard-refresh the browser, then use **Re-analyze → DIRECT** to capture an analysis with the new skill manifests. Existing approved prompts remain available until you choose to refresh them. See the [release notes](RELEASE_NOTES.md) and [skill architecture](docs/SKILL_ARCHITECTURE.md).
 
 ## Credits and acknowledgements
 
@@ -73,7 +74,7 @@ Open the result in **H3 Director Shot Editor (obvpm)**, adjust anything you wish
 
 ### Director workspace in OBVPM
 
-![H3 Director v0.6.5 — Flavour, Request Builder, Director Core and editable Shot Editor](docs/images/obvpm-director-workflow-overview.png)
+![H3 Director — Flavour, Request Builder, Director Core and editable Shot Editor](docs/images/obvpm-director-workflow-overview.png)
 
 The screenshot shows the Director integrated into an existing OBVPM workflow, with a saved analysis and editable materialized prompt. The portable example contains the Director workspace, not the OBVPM Pro workflow shown here.
 
@@ -81,7 +82,7 @@ The screenshot shows the Director integrated into an existing OBVPM workflow, wi
 
 ### 1. Install the Director
 
-**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.5**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.5 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
+**ComfyUI Manager (recommended):** Search for **H3 OBVPM Director** (`h3-obvpm-director`) in the Custom Nodes Manager and install or update to **v0.6.6**. Restart ComfyUI and refresh your browser. If the Manager still shows an older version, check whether v0.6.6 has been published to the Comfy Registry; a GitHub commit alone does not update the Registry.
 
 **Manual GitHub alternative:** Clone into ComfyUI's `custom_nodes` directory, keeping the folder name `h3-prompt-composer`:
 
@@ -96,7 +97,7 @@ Do not install both the Manager package and a GitHub clone in the same ComfyUI i
 
 ### 2. Load the portable Director workspace
 
-Open **[`examples/H3-Director-Core-Workspace.json`](examples/H3-Director-Core-Workspace.json)** in ComfyUI. This is the single supported example for v0.6.5. Copy the complete Director block into your own workflow and configure the models inside **H3 Director Core (obvpm)**. Keep the Recipe Prompt in its separate `[restore]` group for OBVPM integration. The Flavour node is required and stays alongside Request Builder. Existing flat workflows can still use the modular nodes, but must connect Flavour and refresh old analysis snapshots.
+Open **[`examples/H3-Director-Core-Workspace.json`](examples/H3-Director-Core-Workspace.json)** in ComfyUI. This is the single supported example for v0.6.6. Copy the complete Director block into your own workflow and configure the models inside **H3 Director Core (obvpm)**. Keep the Recipe Prompt in its separate `[restore]` group for OBVPM integration. The Flavour node is required and stays alongside Request Builder. Existing flat workflows can still use the modular nodes, but must connect Flavour and refresh old analysis snapshots.
 
 Its Generate nodes use the external **`ollama-image-list` llama.cpp** integration. Configure that integration, or connect your own compatible LLM nodes:
 
@@ -205,5 +206,6 @@ See [ROADMAP.md](ROADMAP.md) for follow-up work.
 - **Example workflow:** [H3 Director Core Workspace](examples/H3-Director-Core-Workspace.json). The older flat examples are superseded. Existing saved workflows are not deleted.
 - **Upgrade from v0.6.4:** restart ComfyUI, hard-refresh the browser and use Re-analyze before DIRECT to rebuild the dialogue and continuity contracts. Existing Core wiring is unchanged.
 - **Upgrade from v0.6.3:** install the current llama.cpp nodepack for the bundled example; copy the new workspace, configure both sessions and reset/re-analyze old snapshots. The Flavour input is now required.
+- **Video tutorial (previous UI):** [Original OBVPM integration walkthrough](https://youtu.be/jMFrAsUYXUQ). The current Core layout and native sessions supersede its Director setup screens.
 
 **[MIT License](LICENSE)** · **[Release notes](RELEASE_NOTES.md)** · **[Changelog](CHANGELOG.md)**

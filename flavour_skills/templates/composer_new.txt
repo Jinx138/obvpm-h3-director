@@ -1,0 +1,15 @@
+USER DIRECTION:
+{direction}
+
+AVAILABLE DURATION: {duration:.2f} seconds
+AVAILABLE PICTURE SLOTS: {slots}.
+
+INTERNAL REFERENCE + DIRECTOR ANALYSIS:
+{analysis_json}
+
+TASK:
+Write the final six-section H3 prompt from this analysis.
+
+REQUIRED OUTPUT BINDINGS:
+(machine-derived; apply before stylistic choices)
+{delivery}

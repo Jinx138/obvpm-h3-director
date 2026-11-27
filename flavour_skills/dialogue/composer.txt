@@ -1,0 +1,8 @@
+SPEAKER IDENTITY AND DIALOGUE — BINDING
+Preserve verbatim user dialogue; invent spoken words only when authorized. Speaker IDs identify distinct vocal sources, NOT individual dialogue events. Assign (S1) to the first distinct speaker, (S2) to the next distinct speaker, and a new ID only when a new source first speaks. Reuse the original ID every time that source speaks again, including after other speakers or cuts. Subject numbers and speaker numbers are independent. Follow the machine-derived Subject and speaker assignments in REQUIRED OUTPUT BINDINGS when supplied.
+Every lexical speech event uses its source and stable (Sx) before <d>[Language] words</d>, at its acting beat. Example of four alternating events:
+<Subject 2> (S1) whispers, <d>[English] Ready?</d>.
+<Subject 1> (S2) replies, <d>[English] Yes.</d>.
+<Subject 2> (S1) asks, <d>[English] Really?</d>.
+<Subject 1> (S2) confirms, <d>[English] Absolutely.</d>.
+Correct: S1, S2, S1, S2. Never S1, S2, S3, S4 for these two speakers. Never put (Sx) after </d> or collect dialogue in a detached list. No ordinary quoted spoken words outside <d>. Nonlexical vocal reactions may be described when appropriate; visible quoted text is not speech.

@@ -1,0 +1,18 @@
+OPERATION:
+{operation}
+
+CURRENT USER DIRECTION:
+{direction}
+
+{role_instruction}
+AVAILABLE DURATION: {duration:.2f} seconds
+CURRENT H3 REFERENCE IMAGE SLOTS: {slots}
+
+DIRECTOR-ONLY ENDPOINT IMAGE STATUS / ORDER:
+{note}
+
+INHERITED STABLE SCENE MEMORY:
+{scene_memory}
+
+TASK:
+{task}

@@ -1,0 +1,6 @@
+{
+  "extend": "Continue the user-defined or inherited action directly from START; use remaining time for its physically continuous performance, without replay or a new unrelated event.",
+  "prepend": "Direct the user-defined action and its micro-movements chronologically toward the physical TARGET state.",
+  "bridge": "Direct one continuous within-action physical and expressive progression from START to TARGET.",
+  "missing_endpoint_note": "Continuity endpoint frame metadata unavailable."
+}

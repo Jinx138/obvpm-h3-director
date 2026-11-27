@@ -1,8 +1,4 @@
-"""Director dev10: action-owned, performance-first isolated skill modules.
-
-Only the selected files are assembled. The old monolithic prompt_skill.py
-ANALYST_SYSTEM / COMPOSER_SYSTEM payloads are not sent to the LLM.
-"""
+"""Select staged system skills and render external request templates."""
 import hashlib
 import json
 from pathlib import Path
@@ -14,7 +10,7 @@ STYLES = ('general', 'drama_emotional', 'action_kinetic', 'casual_comedy',
           'dreamlike', 'adult_nsfw')
 PERFORMANCE = ('adaptive', 'restrained', 'expressive')
 INTIMACY_TONES = ('adaptive', 'tender', 'playful', 'passionate')
-SKILL_PACK_VERSION = '0.6.4.dev10e-continuity-performance-contract'
+SKILL_PACK_VERSION = '0.6.6-creative-fidelity'
 _DIR = Path(__file__).resolve().parent
 
 
@@ -68,6 +64,30 @@ def _read(relative):
     return text
 
 
+def render_template(name, **values):
+    """Render a repository-owned template; inserted values are never reparsed."""
+    return (_DIR / 'templates' / f'{name}.txt').read_text(encoding='utf-8').format(**values)
+
+
+def render_message(group, key, **values):
+    messages = json.loads((_DIR / 'templates' / f'{group}.json').read_text(encoding='utf-8'))
+    return messages[key].format(**values)
+
+
+def template_manifest(stage, operation='new'):
+    """Hash the selected request template sources, separately from system text."""
+    continuity = operation in ('extend', 'prepend', 'bridge')
+    names = [f'templates/{stage}_{"continuity" if continuity else "new"}.txt', 'templates/shared.json']
+    if stage == 'analyst':
+        names.append('templates/reference_role_prepass.txt')
+    else:
+        names.append('templates/delivery.json')
+    if continuity:
+        names.append(f'templates/{stage}.json')
+    entries = [{ 'name': name, 'sha256': hashlib.sha256((_DIR / name).read_bytes()).hexdigest()} for name in names]
+    return {'sha256': hashlib.sha256(json.dumps(entries, sort_keys=True).encode('utf-8')).hexdigest(), 'modules': entries}
+
+
 def _sections(profile, stage, operation='new'):
     profile = parse_profile(profile)
     if stage not in ('analyst', 'composer'):
@@ -85,27 +105,17 @@ def _sections(profile, stage, operation='new'):
     ]
     if operation in ('extend', 'prepend', 'bridge'):
         parts.append((f'continuity_{stage}.txt', _read(f'continuity_{stage}.txt')))
+    if stage == 'composer':
+        parts.insert(1, ('dialogue/composer.txt', _read('dialogue/composer.txt')))
     perf = profile['performance']
-    if perf == 'restrained':
-        parts.append(('performance', 'PERFORMANCE: restrained. Keep the user-defined action continuing, with economical yet legible gaze, body and breath changes; do not reduce it to immobility.'))
-    elif perf == 'expressive':
-        parts.append(('performance', 'PERFORMANCE: expressive. Give the same user-owned action more legible facial, head, hand and body modulation while retaining physical coherence; no additional plot.'))
+    if perf != 'adaptive':
+        relative = f'performance/{perf}.txt'
+        parts.append((relative, _read(relative)))
     if profile['directing_style'] == 'adult_nsfw' and profile['intimacy_tone'] != 'adaptive':
-        tone_guidance = {
-            'tender': ('TONE: TENDER. Direct warmth and unhurried reciprocal attention: '
-                       'soft expressions, responsive hands, affectionate pauses and '
-                       'gentle changes in proximity. Tenderness is not immobility.'),
-            'playful': ('TONE: PLAYFUL. Direct lively, mutually enjoyed give-and-take: '
-                        'mischievous glances, teasing reactions, spontaneous smiles or '
-                        'laughter and well-timed changes in initiative.'),
-            'passionate': ('TONE: PASSIONATE. Direct heightened mutual attraction and '
-                           'expressive intensity through attentive gaze, energetic but '
-                           'plausible movement, changed breathing and clear reciprocal '
-                           'reactions; intensity need not become mechanical or rough.'),
-        }
-        parts.append(('intimacy_tone', tone_guidance[profile['intimacy_tone']]))
+        relative = f'tones/{profile["intimacy_tone"]}.txt'
+        parts.append((relative, _read(relative)))
     if profile['flavour_notes']:
-        parts.append(('flavour_notes', 'USER FLAVOUR NOTES (creative preference, subordinate to explicit user Direction and the reference/continuity contracts):\n' + profile['flavour_notes']))
+        parts.append(('flavour_notes', render_template('flavour_notes', notes=profile['flavour_notes'])))
     return parts
 
 
@@ -115,11 +125,11 @@ def compose_system(profile, stage, operation='new'):
 
 
 def manifest(profile, stage, operation='new'):
-    """Exact system-prompt size/hash for freeze provenance. Not tokenizer usage."""
+    """Selected base system and template provenance (not final dynamic payload/token count)."""
     selected = _sections(profile, stage, operation)
     payload = '\n\n'.join(content for _, content in selected)
     return {
-        'architecture': 'dev10e-continuity-performance-contract',
+        'architecture': 'external-skill-templates-v1',
         'skill_pack_version': SKILL_PACK_VERSION,
         'stage': stage,
         'operation': str(operation or 'new').casefold(),
@@ -127,4 +137,5 @@ def manifest(profile, stage, operation='new'):
         'chars': len(payload),
         'words': len(payload.split()),
         'modules': [{'name': name, 'chars': len(content)} for name, content in selected],
+        'request_templates': template_manifest(stage, str(operation or 'new').casefold()),
     }

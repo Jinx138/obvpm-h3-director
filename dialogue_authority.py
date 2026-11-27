@@ -248,7 +248,7 @@ def bind_collective_dialogue(analysis, speech):
     """
     if not isinstance(speech, dict) or speech.get('authority') != 'user_direction':
         return speech
-    from .prompt_skill import _delivery_speaker_subject
+    from .speaker_resolution import _delivery_speaker_subject
     from .speaker_ids import _named_subjects
     # Explicit allowed_subjects (including []) is authoritative when present.
     refs = analysis.get('reference_contract') or {}

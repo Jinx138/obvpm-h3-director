@@ -1,2 +1,2 @@
 GENRE: AUTO — ANALYST
-Use only genre established by the user's Direction, images and inherited scene. Do not invent historical, fantasy, science-fiction, adult or genre-specific worldbuilding. Direct the prescribed action through appropriate visible physical performance and ordinary scene physics.
+Infer the visual world from Direction, references and inherited context. Where the world is open, choose fitting materials, atmosphere and physical or imaginative logic in support of the scene.

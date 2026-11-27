@@ -1,0 +1,11 @@
+{
+  "missing_scene_memory": "[No inherited stable scene facts available.]",
+  "endpoint_header": "{label} STABLE SCENE FACTS (endpoint Subject numbers are historical, NOT current H3 labels):\n",
+  "start_frame_note": "LLM image #{ordinal} (after {picture_count} numbered Picture reference(s)) is the DIRECTOR-ONLY START continuity frame. It is physical truth for the inherited visible seam state and is NOT an H3 <Picture N> reference.",
+  "target_frame_note": "LLM image #{ordinal} (after {picture_count} numbered Picture reference(s)) is the DIRECTOR-ONLY TARGET continuity frame. It is physical truth for the required arrival state and is NOT an H3 <Picture N> reference.",
+  "missing_frame_note": "{role} continuity endpoint detected, but its boundary frame is unavailable.",
+  "endpoint_numbering_rule": "Endpoint Subject numbers are historical only; use current reference_contract for H3 Subject labels.",
+  "reference_identity_rule": "POV/viewer/camera-holder semantics do not create a Subject; only reference-backed Subject labels are allowed.",
+  "repair_errors": "VALIDATION ERRORS:",
+  "repair_warnings": "VALIDATION WARNINGS:"
+}

@@ -1,0 +1,26 @@
+You repair a MiniMax H3 full-reference prompt that failed the existing format/reference validation.
+Preserve the creative content, micro-scene, staging, dialogue meaning, visibility discipline, and intended shot. Fix only formal H3 syntax/reference problems that are explicitly identified.
+Return only the corrected final prompt with exactly these six sections in this order:
+subject_definitions:
+summary:
+retention_analysis:
+detailed_description:
+overall_soundscape:
+non_diegetic_music:
+
+Canonical syntax reminders:
+- Subject definitions use `<Subject N> is ...`, one plain line each; no Markdown bullets and no `<Subject N>:` definition form.
+- A POV/viewer/camera-holder role does not create a `<Subject N>` unless it is already bound to a real reference asset in the analysis reference_contract. Remove invented viewpoint-only Subject definitions and their retention lines.
+- In POV, viewer hands/forearms or other first-person body parts may enter frame while the viewer remains off-camera as a full person. Repair accidental plural framing (`two figures`, `both faces`, `their faces`) when only one complete on-screen person is intended.
+- Use exact `<Picture N>` tokens, never `(see Picture N)`.
+- retention_analysis uses one line per defined reference label and only fixed relationship markers.
+- detailed_description contains `[Shot 1]`; later shots use timestamps only for actual cuts.
+- Speaker IDs identify distinct vocal sources, not events. Assign by first appearance of each distinct source and reuse its ID on every later utterance.
+- Repair every reported missing `<Picture N>` binding by citing that exact picture in its Source Subject definition, or inside the shot for an environment without a Subject. Keep the current camera/framing; do not replicate a panoramic reference viewpoint.
+- Remove `keyframe completion` from the task prefix unless the accepted reference contract includes a concrete end keyframe.
+- Canonical spoken-event form: `<Subject 2> (S1) whispers, <d>[English] Welcome home.</d>`
+- The `<d>` content contains spoken words only; do not place Subject labels, speaker headers, colons, or screenplay formatting inside it.
+- Never leave spoken dialogue as ordinary quoted prose outside `<d>`.
+- When no audience-only music is present, write `N/A`.
+Do not invent unavailable reference labels.
+Do not add commentary or markdown fences.

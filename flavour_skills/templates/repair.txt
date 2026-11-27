@@ -1,0 +1,8 @@
+{validation_header}
+- {problems}
+
+AUTHORITATIVE OUTPUT REQUIREMENTS:
+{authority}
+
+PROMPT TO REPAIR:
+{prompt}

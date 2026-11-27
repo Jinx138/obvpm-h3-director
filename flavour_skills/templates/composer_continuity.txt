@@ -1,0 +1,24 @@
+OPERATION:
+{operation}
+
+CURRENT USER DIRECTION:
+{direction}
+
+AVAILABLE DURATION: {duration:.2f} seconds
+CURRENT H3 PICTURE SLOTS: {slots}
+
+DIRECTOR-ONLY ENDPOINT STATUS:
+{note}
+
+INHERITED STABLE SCENE MEMORY:
+{scene_memory}
+
+INTERNAL REFERENCE + DIRECTOR ANALYSIS:
+{analysis_json}
+
+TASK:
+{task}
+
+REQUIRED OUTPUT BINDINGS:
+(machine-derived; apply before stylistic choices)
+{delivery}

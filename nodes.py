@@ -17,9 +17,9 @@ from .prompt_skill import (
     REPAIR_SYSTEM,
     analysis_user_prompt,
     composer_user_prompt,
-    _delivery_speaker_subject,
-    _delivery_speech_lines,
 )
+from .speaker_resolution import _delivery_speaker_subject
+from .prompt_contracts import _delivery_speech_lines
 from .validator import validate_h3_prompt, report, ValidationWarning
 from .format_repair import normalize_reference_tokens
 from .reference_contract_guard import reconcile_asset_slots, sanitize_actor_bindings
@@ -32,6 +32,7 @@ from .flavour_skills import (
     parse_profile as parse_flavour_profile,
     compose_system as compose_flavour_system,
     manifest as flavour_system_manifest,
+    render_message, render_template,
 )
 
 # H3-DIRECTOR-FLAVOUR-DEV8
@@ -520,20 +521,14 @@ class H3DirectorRequestBuilder:
 
         if summary["frame_found"]:
             ordinal = int(summary["llm_image_position"])
-            if role == "start":
-                summary["director_note"] = (
-                    f"LLM image #{ordinal} (after {numbered_picture_count} numbered Picture reference(s)) "
-                    "is the DIRECTOR-ONLY START continuity frame. It is physical truth for the inherited "
-                    "visible seam state and is NOT an H3 <Picture N> reference."
-                )
-            else:
-                summary["director_note"] = (
-                    f"LLM image #{ordinal} (after {numbered_picture_count} numbered Picture reference(s)) "
-                    "is the DIRECTOR-ONLY TARGET continuity frame. It is physical truth for the required "
-                    "arrival state and is NOT an H3 <Picture N> reference."
-                )
+            summary["director_note"] = render_message(
+                "shared", "start_frame_note" if role == "start" else "target_frame_note",
+                ordinal=ordinal, picture_count=numbered_picture_count,
+            )
         else:
-            summary["director_note"] = f"{role.capitalize()} continuity endpoint detected, but its boundary frame is unavailable."
+            summary["director_note"] = render_message(
+                "shared", "missing_frame_note", role=role.capitalize(),
+            )
 
         return summary, state
 
@@ -927,15 +922,16 @@ class H3DirectorAnalysisCompose:
         flavour = parse_flavour_profile(ctx.get("director_flavour"))
         saved_manifests = ctx.get("director_skill_manifests") or {}
         for stage in ("analyst", "composer"):
-            expected = (saved_manifests.get(stage) or {}).get("sha256")
+            saved = saved_manifests.get(stage) or {}
             actual = flavour_system_manifest(
                 flavour, stage, operation=str(ctx.get("operation", "new"))
-            )["sha256"]
-            if not expected or expected != actual:
+            )
+            if (saved.get("sha256") != actual["sha256"]
+                    or (saved.get("request_templates") or {}).get("sha256") != actual["request_templates"]["sha256"]):
                 raise ValueError(
                     "Director skill mismatch for " + stage + ". "
                     "Unfreeze Analysis Snapshot AND Shot Editor, then run DIRECT "
-                    "with the active dev9 Flavour skills before composing."
+                    "with the active Flavour skills and request templates before composing."
                 )
         analysis_obj["director_flavour"] = flavour
         analysis_obj["schema"] = ANALYSIS_SCHEMA
@@ -1025,7 +1021,7 @@ class H3DirectorAnalysisCompose:
                 ctx.setdefault("reference_binding_issues", []).extend(endpoint_issues)
             for role_key in ("start_scene", "target_scene"):
                 continuity_contract[role_key] = endpoint_scene_facts(continuity_contract[role_key])
-            continuity_contract["subject_numbering_rule"] = "Endpoint Subject numbers are historical only; use current reference_contract for H3 Subject labels."
+            continuity_contract["subject_numbering_rule"] = render_message("shared", "endpoint_numbering_rule")
 
         ctx["reference_roles_resolved"] = picture_roles
 
@@ -1047,7 +1043,7 @@ class H3DirectorAnalysisCompose:
                 int(item["picture"]) for item in picture_roles
                 if item.get("role") == "end_keyframe"
             ],
-            "rule": "POV/viewer/camera-holder semantics do not create a Subject; only reference-backed Subject labels are allowed.",
+            "rule": render_message("shared", "reference_identity_rule"),
         }
 
         # dev10d: Actor IDs are independent of H3 Subjects. Reject
@@ -1078,7 +1074,7 @@ class H3DirectorAnalysisCompose:
         # system message as well as the user prompt. No third inference pass.
         speech = (analysis_obj.get("intent") or {}).get("speech_request") or {}
         if speech.get("authority") == "user_direction" and speech.get("utterances"):
-            composer_system += "\n\nMANDATORY CURRENT-SHOT DIALOGUE CONTRACT:\n" + "\n".join(_delivery_speech_lines(analysis_obj))
+            composer_system += render_message("delivery", "mandatory_system_contract", delivery="\n".join(_delivery_speech_lines(analysis_obj)))
         print("[H3 Director] Composer system: "
               f"{len(composer_system)} chars | "
               f"{len(composer_system.split())} words | "
@@ -1293,12 +1289,13 @@ class H3DirectorResponseValidator:
                 "operation": operation,
                 "action_contract": analysis_for_refs.get("action_contract") or [],
             }
-            repair_prompt = (
-                ("VALIDATION ERRORS:\n- " if any(not isinstance(p, ValidationWarning) for p in problems)
-                 else "VALIDATION WARNINGS:\n- ") + "\n- ".join(problems)
-                + "\n\nAUTHORITATIVE OUTPUT REQUIREMENTS:\n"
-                + json.dumps(repair_authority, ensure_ascii=False, indent=2)
-                + "\n\nPROMPT TO REPAIR:\n" + prompt
+            repair_prompt = render_template(
+                "repair",
+                validation_header=render_message("shared", "repair_errors" if any(
+                    not isinstance(p, ValidationWarning) for p in problems) else "repair_warnings"),
+                problems="\n- ".join(problems),
+                authority=json.dumps(repair_authority, ensure_ascii=False, indent=2),
+                prompt=prompt,
             )
             repair_system = REPAIR_SYSTEM
         else:
